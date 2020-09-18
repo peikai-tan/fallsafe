@@ -4,10 +4,10 @@
 
 unsigned int rotateLeft(unsigned int input, unsigned int times)
 {
-    return (input << (times % (sizeof(input) * CHAR_BIT))) | (input >> ((sizeof(input) * CHAR_BIT) - (times % (sizeof(input) * CHAR_BIT))));
+    return (input << (times % int_size)) | (input >> (int_size - (times % int_size)));
 }
 
 unsigned int rotateRight(unsigned int input, unsigned int times)
 {
-    return (input >> (times % (sizeof(input) * CHAR_BIT))) | (input << ((sizeof(input) * CHAR_BIT) - (times % (sizeof(input) * CHAR_BIT))));
+    return (input >> (times % int_size)) | (input << (int_size - (times % int_size)));
 }
