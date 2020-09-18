@@ -1,5 +1,3 @@
-#include <limits.h>
-
 #include "utils/bit_printer.h"
 #include "utils/bit_rotation.h"
 

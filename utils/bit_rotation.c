@@ -1,5 +1,3 @@
-#include <limits.h>
-
 #include "bit_rotation.h"
 
 unsigned int rotateLeft(unsigned int input, unsigned int times)
