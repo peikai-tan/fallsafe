@@ -23,3 +23,12 @@ This is what we currently possess, and suits our needs. However, a standalone gy
 We will be using a combination of the gyroscope and accelerometer data to detect if a fall has occurred through a neural network and defined thresholds that will be calculated using algorithms.The SenseHat module will be used to display the current status of the wearer.  
 
 The joystick will allow the user to disable the buzzer when false-positive occurs.
+
+
+| Team Members | ID | GitHub Name |
+|--------------|----|-------------|
+| Chen Yu    | 1901843 | Cerlancism |
+| Ng Cheuk Fung | 16ADG049Y | chalkfung |
+| Edwin Tang Qin Kang | 1901858 | TanglingTreats |
+| Tan PeiKai | 1901853  | catkane-doodles |
+| Tan Qi Guang    | 1901844  | qg25|
