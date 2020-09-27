@@ -11,3 +11,6 @@ main.o: main.c
 
 clean:
 	rm *.o sensedemo
+
+demo:
+	gcc -o demo main.c sensehat.c -lm -lpthread
