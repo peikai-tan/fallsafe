@@ -14,6 +14,7 @@ sense = SenseHat()
 timestr = time.strftime("%d-%m-%Y-%H:%M:%S")
 
 run = False
+sense.show_letter(choices[c][0], green)
 while not run:
     for event in sense.stick.get_events():
         if event.action == "pressed":
@@ -25,7 +26,7 @@ while not run:
             c = (c + 1) % len(choices) if d == "right" else (c - 1) % len(choices)
             sense.show_letter(choices[c][0], green)
 
-file = "../dataFiles/" + choices[c] + timestr + ".csv"
+file = "./dataFiles/" + choices[c] + timestr + ".csv"
 f = open(file, "w", newline="")
 dataCSV = csv.writer(f)
 
