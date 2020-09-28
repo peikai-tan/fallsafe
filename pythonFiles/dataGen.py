@@ -6,8 +6,8 @@ import csv
 red = [100, 0, 0]
 green = [0, 100, 0]
 
-choices = ["walking", "running", "jumping",
-           "stationary"]  # Expected activities
+choices = ["walking-", "running-", "jumping-",
+           "stationary-"]  # Expected activities
 c = 0
 
 sense = SenseHat()
