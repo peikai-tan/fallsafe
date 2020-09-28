@@ -6,8 +6,8 @@ import csv
 red = [100, 0, 0]
 green = [0, 100, 0]
 
-choices = ["walking-", "running-", "jumping-",
-           "stationary-"]  # Expected activities
+choices = ["walking", "running", "jumping",
+           "stationary"]  # Expected activities
 c = 0
 
 sense = SenseHat()
@@ -26,7 +26,7 @@ while not run:
             c = (c + 1) % len(choices) if d == "right" else (c - 1) % len(choices)
             sense.show_letter(choices[c][0], green)
 
-file = "./dataFiles/" + choices[c] + timestr + ".csv"
+file = "./dataFiles/" + choices[c] + "/" + choices[c] + "-" + timestr + ".csv"
 f = open(file, "w", newline="")
 dataCSV = csv.writer(f)
 

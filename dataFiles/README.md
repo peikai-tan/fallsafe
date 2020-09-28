@@ -1,12 +1,13 @@
 # Data Files
 
-Insert your data files here
+Insert your data files here, with a short description as the commit message
 
-Naming Convention: <activity>_<duration>_<name>_<time>_<date>
+Naming Convention: activity-date-time.csv  
+(This is auto-generated)  
 
 Example:
 
-Training data of a 2 minutes walking from Cheuk Fung at 3.30pm on the 
+Training data of a 2 minutes walking from Cheuk Fung at 6.30pm on the 
 28 Sept 2020
 
-File name: walking_2_cheukfung_1530_28092020
+File name: walking-28-09-2020-18:30:24.csv
