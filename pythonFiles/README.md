@@ -4,7 +4,7 @@
 https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/ (Option 4)
 1. Place dataGen.py at a any convenient location. (e.g ~/Documents/LabProj-G18/pythonFiles/dataGen.py)
 2. Create dataGen.service in /usr/lib/systemd/system with the following contents  
-
+```
 [Unit]  
 Description=Activity Tracker  
 WantedBy=multi-user.target  
@@ -12,7 +12,7 @@ WantedBy=multi-user.target
 [Service]  
 Type=simple  
 ExecStart=/usr/bin/python3 **INSERT YOUR DATAGEN.PY'S  ABSOLUTE PATH HERE** (e.g home/Documents/LabProj-G18/pythonFiles/dataGen.py)  
-
+```
 3. Enable the service  
 `sudo systemctl enable dataGen.service`
 4. Reboot
