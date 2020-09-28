@@ -8,7 +8,7 @@ mags = mags[1:]
 
 mags = [float(mag) for mag in mags]
 
-print(mags)
+mags = mags[:20]
 
 plt.plot(range(len(mags)), mags)
 plt.show()
