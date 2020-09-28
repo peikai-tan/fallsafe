@@ -11,7 +11,7 @@ WantedBy=multi-user.target
   
 [Service]  
 Type=simple  
-ExecStart=/usr/bin/python3 **INSERT YOUR DATAGEN.PY'S  ABSOLUTE PATH HERE** (e.g home/Documents/LabProj-G18/pythonFiles/dataGen.py)  
+ExecStart=/usr/bin/python3 <absolute/path/to>/dataGen.py  
 ```
 3. Enable the service  
 `sudo systemctl enable dataGen.service`
