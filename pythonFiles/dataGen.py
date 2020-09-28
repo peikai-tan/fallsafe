@@ -1,5 +1,6 @@
 from sense_hat import SenseHat
 import math
+import time
 import csv
 
 red = [100, 0, 0]
@@ -10,6 +11,7 @@ choices = ["walking", "running", "jumping",
 c = 0
 
 sense = SenseHat()
+timestr = time.strftime("%d-%m-%Y-%H:%M:%S")
 
 run = False
 while not run:
@@ -23,8 +25,8 @@ while not run:
             c = c + 1 if d == "right" else c - 1
             sense.show_letter(choices[c][0], green)
 
-filename = choices[c] + csv +
-f = open("data.csv", "w", newline="")
+file = choices[c] + timestr + ".csv"
+f = open(file, "w", newline="")
 dataCSV = csv.writer(f)
 
 labels = ["x", "y", "z", "mag"]
