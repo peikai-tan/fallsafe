@@ -5,6 +5,7 @@ import csv
 
 run = False
 sense = SenseHat()
+timestr = time.strftime("%d-%m-%Y-%H:%M:%S")
 
 while not run:
     for event in sense.stick.get_events():
@@ -12,7 +13,7 @@ while not run:
             run = True
             sense.set_pixels([[100, 0, 0] for x in range(64)])
 
-f = open("data.csv", "w", newline="")
+f = open(timestr+".csv", "w", newline="")
 dataCSV = csv.writer(f)
 
 labels = ["x", "y", "z", "mag"]
