@@ -1,6 +1,6 @@
 # Data Files
 
-Insert your data files here
+Insert your data files here, with a short description as the commit message
 
 Naming Convention: activity-date-time.csv  
 (This is auto-generated)  
