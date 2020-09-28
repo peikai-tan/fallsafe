@@ -11,6 +11,7 @@ WantedBy=multi-user.target
   
 [Service]  
 Type=simple  
+WorkingDirectory=<absolute/path/to/>LabProj-G18/
 ExecStart=/usr/bin/python3 <absolute/path/to>/dataGen.py  
 ```
 3. Enable the service  
@@ -23,6 +24,8 @@ ExecStart=/usr/bin/python3 <absolute/path/to>/dataGen.py
 - Start the recording by clicking on the joystick. (LED grid should turn red)
 - Proceed to do the activity
 - End the recording by clicking on the joystick. (LED grid will be blank)
+- Program will restart to allow you to start a new track
+- Select "e" to exit
 - Add and commit the auto generated file that is placed in the dataFiles folder
 
 ## Deletion
