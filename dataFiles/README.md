@@ -2,8 +2,8 @@
 
 Insert your data files here
 
-Naming Convention: <activity>-<date>-<time>.csv
-  (This is auto-generated)
+Naming Convention: activity-date-time.csv  
+(This is auto-generated)  
 
 Example:
 
