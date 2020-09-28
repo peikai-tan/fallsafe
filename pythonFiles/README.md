@@ -11,10 +11,10 @@ WantedBy=multi-user.target
   
 [Service]  
 Type=simple  
-ExecStart=/usr/bin/python3 [INSERT YOUR DATAGEN.PY'S  ABSOLUTE PATH HERE] (e.g home/Documents/LabProj-G18/pythonFiles/dataGen.py)  
+ExecStart=/usr/bin/python3 **INSERT YOUR DATAGEN.PY'S  ABSOLUTE PATH HERE** (e.g home/Documents/LabProj-G18/pythonFiles/dataGen.py)  
 
 3. Enable the service  
-"sudo systemctl enable dataGen.service"
+`sudo systemctl enable dataGen.service`
 4. Reboot
 
 ## Instructions
@@ -27,6 +27,6 @@ ExecStart=/usr/bin/python3 [INSERT YOUR DATAGEN.PY'S  ABSOLUTE PATH HERE] (e.g h
 
 ## Deletion
 1. Disable the service
-"sudo systemctl disable dataGen.service"
+`sudo systemctl disable dataGen.service`
 2. Delete dataGen.service file from /usr/lib/systemd/system/
 3. Reboot
