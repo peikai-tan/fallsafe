@@ -1,17 +1,29 @@
 from sense_hat import SenseHat
 import math
-import time
 import csv
 
-run = False
+red = [100, 0, 0]
+green = [0, 100, 0]
+
+choices = ["walking", "running", "jumping",
+           "stationary"]  # Expected activities
+c = 0
+
 sense = SenseHat()
 
+run = False
 while not run:
     for event in sense.stick.get_events():
-        if event.action == "pressed" and event.direction == "middle":
-            run = True
-            sense.set_pixels([[100, 0, 0] for x in range(64)])
+        if event.action == "pressed":
+            d = event.direction
+            if d == "middle":
+                run = True
+                sense.set_pixels([red for x in range(64)])
+                continue
+            c = c + 1 if d == "right" else c - 1
+            sense.show_letter(choices[c][0], green)
 
+filename = choices[c] + csv +
 f = open("data.csv", "w", newline="")
 dataCSV = csv.writer(f)
 
