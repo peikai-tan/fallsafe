@@ -11,25 +11,28 @@ choices = ["walking", "running", "jumping",
 c = 0
 
 sense = SenseHat()
-timestr = time.strftime("%d-%m-%Y-%H:%M:%S")
 
 run = False
 sense.show_letter(choices[c][0], green)
-while not run:
-    for event in sense.stick.get_events():
-        if event.action == "pressed":
-            d = event.direction
-            if d == "middle":
-                if choices[c] == "e":
-                    exit()
-                else:
-                    run = True
-                    sense.set_pixels([red for x in range(64)])
-                    continue
-            c = (c + 1) % len(choices) if d == "right" else (c - 1) % len(choices)
-            sense.show_letter(choices[c][0], green)
 
-file = "../dataFiles/" + choices[c] + "/" + choices[c] + "-" + timestr + ".csv"
+while not run:
+    event = sense.stick.get_events()[0]:
+    if event.action == "pressed":
+        d = event.direction
+        if d == "middle":
+            if choices[c] == "e":
+                exit()
+            else:
+                run = True
+                sense.set_pixels([red for x in range(64)])
+                continue
+        c = (c + 1) % len(choices) if d == "right" else (c - 1) % len(choices)
+        sense.show_letter(choices[c][0], green)
+
+# Creating csv file for logging of data
+
+file = "../dataFiles/" + choices[c] + "/" + choices[c] + \
+    "-" + time.strftime("%d-%m-%Y-%H:%M:%S") + ".csv"
 f = open(file, "w", newline="")
 dataCSV = csv.writer(f)
 
@@ -42,11 +45,11 @@ while run:
     y = data["y"]
     z = data["z"]
 
-    mag = (math.sqrt(x*x + y * y + z * z))
+    mag = math.sqrt(x * x + y * y + z * z)
     dataCSV.writerow([x, y, z, mag])
 
-    for event in sense.stick.get_events():
-        if event.action == "pressed" and event.direction == "middle":
-            run = False
-            sense.set_pixels([[0, 0, 0] for x in range(64)])
+    event = sense.stick.get_events()[0]:
+    if event.action == "pressed" and event.direction == "middle":
+        run = False
+        sense.set_pixels([[0, 0, 0] for x in range(64)])
 f.close()
