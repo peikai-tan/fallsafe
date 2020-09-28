@@ -6,7 +6,7 @@
 | Chen Yu             | 1901843   | Cerlancism      |
 | Ng Cheuk Fung       | 16ADG049Y | chalkfung       |
 | Edwin Tang Qin Kang | 1901858   | TanglingTreats  |
-| Tan PeiKai          | 1901853   | catkane-doodles |
+| Tan Peikai          | 1901853   | catkane-doodles |
 | Tan Qi Guang        | 1901844   | qg25            |
 
 
