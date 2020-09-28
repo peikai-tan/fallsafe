@@ -22,10 +22,10 @@ while not run:
                 run = True
                 sense.set_pixels([red for x in range(64)])
                 continue
-            c = c + 1 if d == "right" else c - 1
+            c = (c + 1) % len(choices) if d == "right" else (c - 1) % len(choices)
             sense.show_letter(choices[c][0], green)
 
-file = choices[c] + timestr + ".csv"
+file = "../dataFiles/" + choices[c] + timestr + ".csv"
 f = open(file, "w", newline="")
 dataCSV = csv.writer(f)
 
