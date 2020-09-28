@@ -1,3 +1,4 @@
+
 //
 // Sense Hat Unchained
 // A simple set of C functions to initialize and
@@ -11,7 +12,7 @@
 // The Sense Hat consists of the following:
 // 8x8 LED array mapped to a microcontroller at 0x46
 // 5-way joystick mapped to the same microcontroller
-// HTS221 humidity/temp sensor at 0x5F
+// HTS221 humidity/temp sensor at 0x5F// LPS25H pressure/temp sensor at 0x5C
 // LPS25H pressure/temp sensor at 0x5C
 // LSM9DS1 accel/gyro/mag mapped to 0x1C (mag) 0x6A (accel)
 //
@@ -36,26 +37,20 @@
 
 static int file_acc = -1; // accelerometer/gyro
 static int file_mag = -1; // magnetometer
-
+//static int file_joystick = -1;
 static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen);
 static int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen);
-
 //
 // Opens file system handles to the I2C devices
 //
-int shInit(int iChannel, int & pfbfd)
+int shInit(int iChannel, int * pfbfd)
 {
 unsigned char ucTemp[32];
 char filename[32];
+struct fb_fix_screeninfo fix_info;
 
 	sprintf(filename, "/dev/i2c-%d", iChannel);
-	if ((file_led = open(filename, O_RDWR)) < 0)
-	{
-		fprintf(stderr, "Failed to open the i2c bus; need to run as sudo?\n");
-		return -1;
-	}
-
-
+        
 	*pfbfd = open(FILEPATH, O_RDWR);
 	if(*pfbfd == -1)
 	{
@@ -63,7 +58,7 @@ char filename[32];
 		goto badexit;
 	}
 
-	if(ioctl(*pfbfd, FBIOGET_FSCREENINFO, &fix_into) == -1)
+	if(ioctl(*pfbfd, FBIOGET_FSCREENINFO, &fix_info) == -1)
 	{
 		perror("Error (call to 'ioctl')");
 		close(*pfbfd);
@@ -89,6 +84,19 @@ char filename[32];
 		fprintf(stderr, "Failed to acquire bus for magnetometer\n");
 		goto badexit;
 	}
+
+	//file_joystick = open(filename, O_RDWR);
+	//if(file_joystick < 0)
+	//{
+	//	fprintf(stderr, "Failed to open joystick bus \n");
+	//	goto badexit;
+	//}
+
+	//if(ioctl(file_joystick, I2C_SLAVE, 0xf2) < 0)
+	//{
+	//	fprintf(stderr, "failed to acquire bus for joystick \n");
+	//	goto badexit;
+	//}
 
 	// Init magnetometer
 	ucTemp[0] = 0x48; // output data rate/power mode
@@ -121,30 +129,42 @@ badexit:
 		close(file_mag);
 		file_mag = -1;
 	}
+
+	//if(file_joystick != -1)
+	//{
+	//	close(file_joystick);
+	//	file_joystick = -1;
+	//}
 	return 0;
 } /* shInit() */
 
 //
 // Set a single pixel on the 8x8 LED Array
 //
-int shSetPixel(int x, int y, uint16_t color, int bUpdate)
+int shSetPixel(int x, int y, uint16_t color, int bUpdate, uint16_t * map_headptr, int * pfbfd)
 {
-int i;
+int i = 0;
 
-	if (x >= 0 && x < 8 && y >= 0 && y < 8 && file_led >= 0)
+	if (x >= 0 && x < 8 && y >= 0 && y < 8 && *pfbfd >= 0)
 	{
-		i = (y*24)+x; // offset into array
-		LEDArray[i] = (uint8_t)((color >> 10) & 0x3e); // Red
-		LEDArray[i+8] = (uint8_t)((color >> 5) & 0x3f); // Green
-		LEDArray[i+16] = (uint8_t)((color << 1) & 0x3e); // Blue
+		printf("hello");
+		i = (y*8)+x; // offset into array
 		if (bUpdate)
-		{
-			i2cWrite(file_led, 0, LEDArray, 192); // have to send the whole array at once
-		}
+			map_headptr[i] = color;
 		return 1;
 	}
 	return 0;
 } /* shSetPixel() */
+
+int setMap(uint16_t color,  uint16_t * map, int * pfbfd)
+{
+	if(*pfbfd >= 0)
+	{
+		memset(map, color, FILESIZE);
+		return 1;
+	}
+	return 0;
+}
 
 int shGetAccel(int *Ax, int *Ay, int *Az)
 {
@@ -207,19 +227,15 @@ int rc;
 	return 0;
 } /* shGetMagneto() */
 
-void shShutdown(void)
+void shShutdown(int * pfbfd, uint16_t * map)
 {
-	// Blank the LED array
-	memset(LEDArray, 0, sizeof(LEDArray));
-	i2cWrite(file_led, 0, LEDArray, 192);
-
-	// Close all I2C file handles
-	if (file_led != -1) close(file_led);
-	if (file_hum != -1) close(file_hum);
-	if (file_pres != -1) close(file_pres);
 	if (file_acc != -1) close(file_acc);
 	if (file_mag != -1) close(file_mag);
-	file_led = file_hum = file_pres = file_acc = file_mag = -1;
+	if (*pfbfd != 1) close (*pfbfd);
+
+	if(munmap(map, FILESIZE) == -1)
+		perror("Error un-mapping the file");
+	file_acc = file_mag = -1;
 } /* shShutdown() */
 
 static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen)
@@ -236,6 +252,18 @@ int rc;
 	return rc;
 } /* i2cRead() */
 
+int mapLEDFrameBuffer(uint16_t ** map, int * pfbfd)
+{
+	*map = mmap(NULL, FILESIZE, PROT_READ | PROT_WRITE, MAP_SHARED, *pfbfd, 0);
+	if(map == MAP_FAILED)
+	{
+		close(*pfbfd);
+		perror("Error mapping the file");
+		return 0;
+	}
+	return 1;
+}
+
 int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen)
 {
 unsigned char ucTemp[512];
@@ -251,36 +279,15 @@ int rc;
 
 } /* i2cWrite() */
 
-unsigned char shReadJoystick(void)
-{
-unsigned char ucBuf[2];
-int rc;
-
-	if (file_led != -1)
-	{
-		rc = i2cRead(file_led, 0xf2, ucBuf, 1);
-		if (rc == 1)
-			return ucBuf[0];
-	}
-	return 0;
-} /* shReadJoystick() */
-
-int mapLEDFrameBuffer(uint16_t * map, int * pfbfd)
-{
-	map = mmap(NULL, FILESIZE, PROT_READ | PROT_WRITE, MAP_SHARED, *pfbfd, 0);
-	if(map == MAP_FALED)
-	{
-		close(*pfbfd);
-		perror("Error mapping the file");
-		return -1;
-	}
-	return 1;
-}
-
-int shSetPixel(int x, int y, uint16_t colour, int bUpdate, int * pfbfd)
-{
-	if( x >= 0 && x < 8 && y >= 0  && y < 8 && *pfbfd >= 0)
-	{
-
-	}
-}
+//unsigned char shReadJoystick(int * pfbfd)
+//{
+//	unsigned char ucBuf[2];
+//        int rc = 0;
+//	if(*pfbfd != -1)
+//	{
+//		rc = i2cRead(*pfbfd, 0xf2, ucBuf, 1);
+//		if(rc == 1)
+//			return ucBuf[0];
+//	}
+//	return 0;
+//}

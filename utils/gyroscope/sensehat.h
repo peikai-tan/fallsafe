@@ -45,11 +45,6 @@
 
 
 //
-// Read the 5-way joystick status
-// 
-unsigned char shReadJoystick(void);
-
-//
 // Read the magnetometer values for x/y/z
 //
 int shGetMagneto(int *Mx, int *My, int *Mz);
@@ -61,20 +56,27 @@ int shGetMagneto(int *Mx, int *My, int *Mz);
 // enable the update to the array. The color is in RGB565
 // format and the valid range of x/y is 0-7
 //
-int shSetPixel(int x, int y, uint16_t color, int bUpdate);
+int shSetPixel(int x, int y, uint16_t color, int bUpdate, uint16_t * map_headptr, int * pfbfd);
+
+int setMap(uint16_t color, uint16_t * map, int * pfbfd);
 
 //
 // Initialize the sensors on the Sense Hat
 // iChannel = I2C channel number (0/1/2)
 //
-int shInit(int iChannel);
+int shInit(int iChannel, int * pfbfd);
 
 
 //
 // Frees resources and closes handles
 //
-void shShutdown(void);
+void shShutdown(int * pfbfd, uint16_t * map);
 
 int shGetGyro(int *Gx, int *Gy, int *Gz);
+
+int mapLEDFrameBuffer(uint16_t **  map, int * pfbfd);
+
+//unsigned char shReadJoystick(int * pfbfd);
+
 
 #endif // _SENSEHAT_H_
