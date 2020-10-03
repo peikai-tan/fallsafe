@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 	uint16_t * mapHead = 0;
 	int x = 0, y = 0, z = 0;
   float accel_x = 0, accel_y = 0, accel_z = 0;
-	//unsigned char isDown = 0;
+	unsigned char isDown = 0;
 	if(shInit(1, &fbfd) == 0)
 	{
 		printf("Unable to open sense, is it connected?\n");
@@ -25,28 +25,13 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-  // Initialise joystick event
-  joyFp = fopen(JOYSTICK_FILE, "rb");
-  if(joyFp == NULL)
-  {
-    printf("Unable to open joystick event!\n");
-  }
-
 	mapHead = map;
 	printf("map ptr: %p \n", map);
 	while(1)
 	{
-		//isDown = shReadJoystick(&fbfd);
-		//printf("Joystick vals: %02x\n", isDown);
-    printf("Does this run?\n");
-    fread(joyBuf, sizeof(joyBuf), 1, joyFp);
+		isDown = shReadJoystick(&fbfd);
+		printf("Joystick vals: %02x\n", isDown);
 
-    i = 0;
-    for(;i < 4; i++)
-    {
-      printf("%u", joyBuf[i]);
-    }
-    printf("\n");
 
 //		if(shGetGyro(&x, &y, &z))
 //		{
@@ -57,9 +42,7 @@ int main(int argc, char *argv[])
 //      printf("Accel: X = %f, Y = %f, Z = %f \n", accel_x, accel_y, accel_z);
 //    }
 
-    printf("Map value: %x\n", fbfd);
-    unsigned int joyStickNum = shReadJoystick(&fbfd);
-    printf("%d\n", joyStickNum);
+//    printf("Map value: %x\n", fbfd);
 
 		//shSetPixel(3, 3, 0xF800, 1, mapHead, &fbfd);
 		sleep(1);

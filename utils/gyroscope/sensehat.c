@@ -50,6 +50,7 @@ char filename[32];
 struct fb_fix_screeninfo fix_info;
 
 	sprintf(filename, "/dev/i2c-%d", iChannel);
+  printf("filename %s\n", filename);
         
 	*pfbfd = open(FILEPATH, O_RDWR);
 	if(*pfbfd == -1)
@@ -78,25 +79,32 @@ struct fb_fix_screeninfo fix_info;
 		fprintf(stderr, "Failed to acquire bus for accelerometer\n");
 		goto badexit;
 	}
+  printf("Aceel %d\n",file_acc);
 	file_mag = open(filename, O_RDWR);
 	if (ioctl(file_mag, I2C_SLAVE, MAGN_ADDR) < 0)
 	{
 		fprintf(stderr, "Failed to acquire bus for magnetometer\n");
 		goto badexit;
 	}
+  printf("Mag %d\n",file_mag);
 
-//	file_joystick = open(filename, O_RDWR);
-//	if(file_joystick < 0)
-//	{
-//		fprintf(stderr, "Failed to open joystick bus \n");
-//		goto badexit;
-//	}
-//
-//	if(ioctl(file_joystick, I2C_SLAVE, JOY_ADDR) < 0)
-//	{
-//		fprintf(stderr, "failed to acquire bus for joystick \n");
-//		goto badexit;
-//	}
+	file_joystick = open(filename, O_RDWR);
+	if(file_joystick < 0)
+	{
+		fprintf(stderr, "Failed to open joystick bus \n");
+		goto badexit;
+	}
+  printf("Joystick  %d\n", file_joystick);
+
+  printf("errno: %d\n", errno);
+  int addr = 0xf2;
+	if(ioctl(file_joystick, I2C_SLAVE_FORCE, addr) < 0)
+	{
+		fprintf(stderr, "failed to acquire bus for joystick \n");
+    printf("errno: %d\n", errno);
+		goto badexit;
+	}
+  printf("This is after acquiring joystick\n");
 
 	// Init magnetometer
 	ucTemp[0] = 0x48; // output data rate/power mode
@@ -266,6 +274,9 @@ int rc;
 	if (rc == 1)
 	{
 		rc = read(iHandle, buf, iLen);
+		printf("i2c read: %d \n", rc);
+		printf("i2c buf: %d \n", buf[0]);
+		printf("i2c buf: %d \n", buf[1]);
 	}
 	return rc;
 } /* i2cRead() */
@@ -312,12 +323,13 @@ unsigned char shReadJoystick(int * pfbfd)
 	return 0;
 }
 
-int initJoystick(FILE *fp)
+int initJoystick(int* fd)
 {
-  fp = fopen(JOYSTICK_FILE, "rb");
-  if (fp != NULL) 
+  *fd = open(JOYSTICK_FILE, O_RDONLY);
+  if (*fd == -1) 
   {
-    return 1;
+    printf("Unable to open file! Errno: %d\n", errno);
+    return 0;
   }
   return 0;
 }

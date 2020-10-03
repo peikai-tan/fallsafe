@@ -25,13 +25,21 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+
 #include <fcntl.h>
+
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 #include <linux/fb.h>
+
+#include <i2c/smbus.h>
+
+#include <errno.h>
 
 // bit definitions for joystick
 #define JOY_DOWN 1
@@ -48,7 +56,7 @@
 
 #define ACCEL_ADDR 0x6a
 #define MAGN_ADDR 0x1c
-#define JOY_ADDR 0x46
+#define JOY_ADDR 0xf2
 
 //
 // Read the magnetometer values for x/y/z
