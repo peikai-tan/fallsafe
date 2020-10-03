@@ -37,7 +37,7 @@
 
 static int file_acc = -1; // accelerometer/gyro
 static int file_mag = -1; // magnetometer
-//static int file_joystick = -1;
+static int file_joystick = -1; // joystick
 static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen);
 static int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen);
 //
@@ -73,30 +73,30 @@ struct fb_fix_screeninfo fix_info;
 	}
 
 	file_acc = open(filename, O_RDWR);
-	if (ioctl(file_acc, I2C_SLAVE, 0x6a) < 0)
+	if (ioctl(file_acc, I2C_SLAVE, ACCEL_ADDR) < 0)
 	{
 		fprintf(stderr, "Failed to acquire bus for accelerometer\n");
 		goto badexit;
 	}
 	file_mag = open(filename, O_RDWR);
-	if (ioctl(file_mag, I2C_SLAVE, 0x1c) < 0)
+	if (ioctl(file_mag, I2C_SLAVE, MAGN_ADDR) < 0)
 	{
 		fprintf(stderr, "Failed to acquire bus for magnetometer\n");
 		goto badexit;
 	}
 
-	//file_joystick = open(filename, O_RDWR);
-	//if(file_joystick < 0)
-	//{
-	//	fprintf(stderr, "Failed to open joystick bus \n");
-	//	goto badexit;
-	//}
-
-	//if(ioctl(file_joystick, I2C_SLAVE, 0xf2) < 0)
-	//{
-	//	fprintf(stderr, "failed to acquire bus for joystick \n");
-	//	goto badexit;
-	//}
+//	file_joystick = open(filename, O_RDWR);
+//	if(file_joystick < 0)
+//	{
+//		fprintf(stderr, "Failed to open joystick bus \n");
+//		goto badexit;
+//	}
+//
+//	if(ioctl(file_joystick, I2C_SLAVE, JOY_ADDR) < 0)
+//	{
+//		fprintf(stderr, "failed to acquire bus for joystick \n");
+//		goto badexit;
+//	}
 
 	// Init magnetometer
 	ucTemp[0] = 0x48; // output data rate/power mode
@@ -130,11 +130,11 @@ badexit:
 		file_mag = -1;
 	}
 
-	//if(file_joystick != -1)
-	//{
-	//	close(file_joystick);
-	//	file_joystick = -1;
-	//}
+	if(file_joystick != -1)
+	{
+		close(file_joystick);
+		file_joystick = -1;
+	}
 	return 0;
 } /* shInit() */
 
@@ -147,7 +147,7 @@ int i = 0;
 
 	if (x >= 0 && x < 8 && y >= 0 && y < 8 && *pfbfd >= 0)
 	{
-		printf("hello\n");
+		//printf("hello\n");
 		i = (y*8)+x; // offset into array
 		if (bUpdate)
 			map_headptr[i] = color;
@@ -291,21 +291,37 @@ int rc;
 		return -1; // invalid write
 
 	ucTemp[0] = ucAddr; // send the register number first 
+  printf("Register number: %d %x\n", ucAddr, ucAddr);
 	memcpy(&ucTemp[1], buf, iLen); // followed by the data
 	rc = write(iHandle, ucTemp, iLen+1);
 	return rc-1;
 
 } /* i2cWrite() */
 
-//unsigned char shReadJoystick(int * pfbfd)
-//{
-//	unsigned char ucBuf[2];
-//        int rc = 0;
-//	if(*pfbfd != -1)
-//	{
-//		rc = i2cRead(*pfbfd, 0xf2, ucBuf, 1);
-//		if(rc == 1)
-//			return ucBuf[0];
-//	}
-//	return 0;
-//}
+unsigned char shReadJoystick(int * pfbfd)
+{
+	unsigned char ucBuf[2];
+        int rc = 0;
+	if(*pfbfd != -1)
+	{
+		rc = i2cRead(*pfbfd, 0xf2, ucBuf, 1);
+		if(rc == 1)
+      printf("Value in buffer: %d\n", ucBuf[0]);
+			return ucBuf[0];
+	}
+	return 0;
+}
+
+int initJoystick(FILE *fp)
+{
+  fp = fopen(JOYSTICK_FILE, "rb");
+  if (fp != NULL) 
+  {
+    return 1;
+  }
+  return 0;
+}
+int readJoystick(const FILE* fp)
+{
+
+}

@@ -4,7 +4,11 @@
 
 int main(int argc, char *argv[])
 {
+  FILE *joyFp;
+  char joyBuf[4];
+  int i = 0;
 	int fbfd = 0;
+  int joystickFB = 0;
 	uint16_t * map = 0;
 	uint16_t * mapHead = 0;
 	int x = 0, y = 0, z = 0;
@@ -20,22 +24,44 @@ int main(int argc, char *argv[])
 		printf("Unable to map LED to Frame Buffer. \n");
 		return -1;
 	}
+
+  // Initialise joystick event
+  joyFp = fopen(JOYSTICK_FILE, "rb");
+  if(joyFp == NULL)
+  {
+    printf("Unable to open joystick event!\n");
+  }
+
 	mapHead = map;
 	printf("map ptr: %p \n", map);
 	while(1)
 	{
 		//isDown = shReadJoystick(&fbfd);
 		//printf("Joystick vals: %02x\n", isDown);
-		if(shGetGyro(&x, &y, &z))
-		{
-			printf("Gyro: X = %d, Y= %d, Z = %d \n", x, y, z);
-		}
-    if(shGet2GAccel(&accel_x, &accel_y, &accel_z))
-    {
-      printf("Accel: X = %f, Y = %f, Z = %f \n", accel_x, accel_y, accel_z);
-    }
+    printf("Does this run?\n");
+    fread(joyBuf, sizeof(joyBuf), 1, joyFp);
 
-		shSetPixel(3, 3, 0xF800, 1, mapHead, &fbfd);
+    i = 0;
+    for(;i < 4; i++)
+    {
+      printf("%u", joyBuf[i]);
+    }
+    printf("\n");
+
+//		if(shGetGyro(&x, &y, &z))
+//		{
+//			printf("Gyro: X = %d, Y= %d, Z = %d \n", x, y, z);
+//		}
+//    if(shGet2GAccel(&accel_x, &accel_y, &accel_z))
+//    {
+//      printf("Accel: X = %f, Y = %f, Z = %f \n", accel_x, accel_y, accel_z);
+//    }
+
+    printf("Map value: %x\n", fbfd);
+    unsigned int joyStickNum = shReadJoystick(&fbfd);
+    printf("%d\n", joyStickNum);
+
+		//shSetPixel(3, 3, 0xF800, 1, mapHead, &fbfd);
 		sleep(1);
 		setMap(0xFFFF, map, &fbfd);
 		sleep(1);

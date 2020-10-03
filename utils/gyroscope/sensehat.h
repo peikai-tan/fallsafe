@@ -40,10 +40,15 @@
 #define JOY_RIGHT 2
 #define JOY_ENTER 8
 #define FILEPATH "/dev/fb1"
+#define JOYSTICK_FILE "/dev/input/event0"
 #define LED_MAX 64
 #define FILESIZE (LED_MAX * sizeof(uint16_t))
 
 #define twoG_LSB 0.061
+
+#define ACCEL_ADDR 0x6a
+#define MAGN_ADDR 0x1c
+#define JOY_ADDR 0x46
 
 //
 // Read the magnetometer values for x/y/z
@@ -67,7 +72,6 @@ int setMap(uint16_t color, uint16_t * map, int * pfbfd);
 //
 int shInit(int iChannel, int * pfbfd);
 
-
 //
 // Frees resources and closes handles
 //
@@ -81,7 +85,9 @@ int shGet2GAccel(float *Ax, float *Ay, float *Az);
 
 int mapLEDFrameBuffer(uint16_t **  map, int * pfbfd);
 
-//unsigned char shReadJoystick(int * pfbfd);
+unsigned char shReadJoystick(int * pfbfd);
 
+int initJoystick(FILE *fp);
+int readJoystick(const FILE* fp);
 
 #endif // _SENSEHAT_H_
