@@ -8,6 +8,7 @@ int main(int argc, char *argv[])
 	uint16_t * map = 0;
 	uint16_t * mapHead = 0;
 	int x = 0, y = 0, z = 0;
+  float accel_x = 0, accel_y = 0, accel_z = 0;
 	//unsigned char isDown = 0;
 	if(shInit(1, &fbfd) == 0)
 	{
@@ -29,6 +30,11 @@ int main(int argc, char *argv[])
 		{
 			printf("Gyro: X = %d, Y= %d, Z = %d \n", x, y, z);
 		}
+    if(shGet2GAccel(&accel_x, &accel_y, &accel_z))
+    {
+      printf("Accel: X = %f, Y = %f, Z = %f \n", accel_x, accel_y, accel_z);
+    }
+
 		shSetPixel(3, 3, 0xF800, 1, mapHead, &fbfd);
 		sleep(1);
 		setMap(0xFFFF, map, &fbfd);

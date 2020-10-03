@@ -43,6 +43,7 @@
 #define LED_MAX 64
 #define FILESIZE (LED_MAX * sizeof(uint16_t))
 
+#define twoG_LSB 0.061
 
 //
 // Read the magnetometer values for x/y/z
@@ -73,6 +74,10 @@ int shInit(int iChannel, int * pfbfd);
 void shShutdown(int * pfbfd, uint16_t * map);
 
 int shGetGyro(int *Gx, int *Gy, int *Gz);
+
+int shGetAccel(int *Ax, int *Ay, int *Az);
+
+int shGet2GAccel(float *Ax, float *Ay, float *Az);
 
 int mapLEDFrameBuffer(uint16_t **  map, int * pfbfd);
 

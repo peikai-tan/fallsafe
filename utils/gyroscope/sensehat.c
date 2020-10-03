@@ -147,7 +147,7 @@ int i = 0;
 
 	if (x >= 0 && x < 8 && y >= 0 && y < 8 && *pfbfd >= 0)
 	{
-		printf("hello");
+		printf("hello\n");
 		i = (y*8)+x; // offset into array
 		if (bUpdate)
 			map_headptr[i] = color;
@@ -188,6 +188,24 @@ int rc;
 	}
 	return 0;
 } /* shGetAccel() */
+
+int shGet2GAccel(float *Ax, float *Ay, float *Az)
+{
+  int x = *Ax;
+  int y = *Ay;
+  int z = *Az;
+
+  if(shGetAccel(&x, &y, &z))
+  {
+    *Ax = (x * twoG_LSB) / 1000;
+    *Ay = (y * twoG_LSB) / 1000;
+    *Az = (z * twoG_LSB) / 1000;
+    
+    return 1;
+  }
+  
+  return 0;
+} /* shGet2GAccel() */
 
 int shGetGyro(int *Gx, int *Gy, int *Gz)
 {
