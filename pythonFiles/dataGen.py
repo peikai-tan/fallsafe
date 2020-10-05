@@ -3,6 +3,10 @@ import math
 import time
 import csv
 import atexit
+import getpass
+
+
+user = getpass.getuser()
 
 
 def toMessWithChalk(angle):
@@ -65,7 +69,7 @@ while True:
                 sense.show_letter(acts[c][0], green)
 
     # Creating csv file for logging of data
-    file = "./dataFiles/" + acts[c] + "/" + acts[c] + \
+    file = "./dataFiles/" + acts[c] + "/" + user + acts[c] + \
         "-" + time.strftime("%d-%m-%Y-%H:%M:%S") + ".csv"
     f = open(file, "w", newline="")
     dataCSV = csv.writer(f)
