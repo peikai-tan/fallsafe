@@ -13,6 +13,9 @@ WantedBy=multi-user.target
 Type=simple  
 WorkingDirectory=<absolute/path/to/>LabProj-G18/
 ExecStart=/usr/bin/python3 <absolute/path/to>/dataGen.py  
+
+[Install]
+WantedBy=multi-user.target
 ```
 3. Enable the service  
 `sudo systemctl enable dataGen.service`
