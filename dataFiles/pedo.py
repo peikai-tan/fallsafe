@@ -1,14 +1,23 @@
+import os
 import csv
+import numpy as np
 from matplotlib import pyplot as plt
 
-f = csv.reader(open("data.csv", "r"))
+os.chdir(os.getcwd() + "/dataFiles/")
+print(os.getcwd())
+files = os.listdir("walking")
 
-mags = [mag[-1] for mag in f]
-mags = mags[1:]
+for f in files:
+    f = csv.reader(open("walking/" + f, "r"))
 
-mags = [float(mag) for mag in mags]
+    mags = [mag[-1] for mag in f]
+    mags = mags[1:]
 
-mags = mags[:20]
+    mags = np.array([float(mag) for mag in mags])
+    mags = mags - 1
+    mags = mags[:1000]
 
-plt.plot(range(len(mags)), mags)
-plt.show()
+    mags = mags[int(len(mags) * 0.1):int(len(mags) * 0.9)]
+
+    plt.plot(range(len(mags)), mags)
+    plt.show()
