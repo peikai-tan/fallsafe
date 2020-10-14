@@ -23,6 +23,7 @@ WantedBy=multi-user.target
 
 ## Instructions
 - Strap the pi to your wrist
+- **Ensure the pi's USB ports are facing your wrist, for consistent data collection.**
 - Choose your activity using the joystick. r = running, w = walking, j = jumping, s = stationary
 - Start the recording by clicking on the joystick. (LED grid should turn red)
 - Proceed to do the activity
