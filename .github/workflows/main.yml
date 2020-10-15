@@ -22,4 +22,4 @@ jobs:
       with:
         webhook: "https://discordapp.com/api/webhooks/766292906150461480/vBauvTV_-4lE6RjlzRpS1ezFyADgfbE5S0oFTDE1KdEULDQeH2_RAa_GRrR0z5-yRRmy"
         message: "Successful commit to **{{ github.context.payload.repository.owner.name }}/{{ github.context.payload.repository.name}}**.\nDiff: {{ github.context.payload.compare }}"
-        embed: '{ "title": "{{ commit.title }}", "description": "{{ commit.description }}", "url": "{{ commit.url }}", "author": { "name": "{{ commit.author.name }} ({{ commit.author.username }})", "icon_url": "https://avatars.io/gravatar/{{ commit.author.email }}"} }'
+        embed: '{ "title": "{{ commit.title }}", "description": "{{ commit.description }}", "url": "{{ commit.url }}", "author": { "name": "{{ commit.author.name }} ({{ commit.author.username }})", "icon_url": " https://unavatar.now.sh/github/commit.author.username"} }'
