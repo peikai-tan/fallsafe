@@ -7,9 +7,6 @@ import getpass
 import socket
 
 
-user = getpass.getuser()
-
-
 def toMessWithChalk(angle):
     coors = list()
 
@@ -71,11 +68,11 @@ while True:
 
     # Creating csv file for logging of data
     file = "./dataFiles/" + acts[c] + "/" + socket.gethostname() + "-" + acts[c] + \
-        "-" + time.strftime("%d-%m-%Y-%H:%M:%S") + ".csv"
+        "-" + time.strftime("%d-%m-%Y--%H-%M-%S") + ".csv"
     f = open(file, "w", newline="")
     dataCSV = csv.writer(f)
 
-    labels = ["x", "y", "z", "mag"]
+    labels = ["x", "y", "z"]
     dataCSV.writerow(labels)
 
     while run:
@@ -86,8 +83,7 @@ while True:
         y = data["y"]
         z = data["z"]
 
-        mag = math.sqrt(x * x + y * y + z * z)
-        dataCSV.writerow([x, y, z, mag])
+        dataCSV.writerow([x, y, z])
 
         for event in sense.stick.get_events():
             run = False if event.action == "pressed" and event.direction == "middle" else True
