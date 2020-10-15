@@ -1,4 +1,8 @@
-typedef struct queue {
+#if !defined(COMMON_QUEUE)
+#define COMMON_QUEUE
+
+typedef struct queue
+{
     int length;
 } Queue;
 
@@ -8,3 +12,5 @@ void queue_destory(Queue *queue);
 void *queue_enqueue(Queue *queue, void *item);
 void *queue_dequeue(Queue *queue);
 void *queue_peek(Queue *queue);
+
+#endif // COMMON_QUEUE
