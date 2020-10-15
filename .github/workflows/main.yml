@@ -27,5 +27,5 @@ jobs:
       uses: Sniddl/discord-commits@v1.2
       with:
         webhook: "https://discordapp.com/api/webhooks/766292906150461480/vBauvTV_-4lE6RjlzRpS1ezFyADgfbE5S0oFTDE1KdEULDQeH2_RAa_GRrR0z5-yRRmy"
-        message: "{{ github.context.payload.repository.name }} {{ BRANCH_NAME }}"
+        message: "{{ github.context.payload.repository.name }} ${{ BRANCH_NAME }}"
         embed: '{ "title": "{{ commit.title }}", "description": "{{ commit.description }}", "url": "{{ commit.url }}", "author": { "name": "{{ commit.author.name }} ({{ commit.author.username }})", "icon_url": " https://unavatar.now.sh/github/{{ commit.author.username }}"} }'
