@@ -18,14 +18,9 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - name: Declare some variables
-      id: vars
-      shell: bash
-      run: |
-        BRANCH_NAME=$(echo $GITHUB_REF | cut -d'/' -f 3)
     - name: Discord Commits
       uses: Sniddl/discord-commits@v1.2
       with:
         webhook: "https://discordapp.com/api/webhooks/766292906150461480/vBauvTV_-4lE6RjlzRpS1ezFyADgfbE5S0oFTDE1KdEULDQeH2_RAa_GRrR0z5-yRRmy"
-        message: "{{ github.context.payload.repository.name }} ${{ BRANCH_NAME }}"
+        message: "{{ github.context.payload.repository.name }} ${{ github.context.payload.ref }}"
         embed: '{ "title": "{{ commit.title }}", "description": "{{ commit.description }}", "url": "{{ commit.url }}", "author": { "name": "{{ commit.author.name }} ({{ commit.author.username }})", "icon_url": " https://unavatar.now.sh/github/{{ commit.author.username }}"} }'
