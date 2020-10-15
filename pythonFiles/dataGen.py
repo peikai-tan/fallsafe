@@ -87,7 +87,6 @@ while True:
 
         for event in sense.stick.get_events():
             run = False if event.action == "pressed" and event.direction == "middle" else True
-        time.sleep(0.1)
 
     sense.set_pixels([[0, 0, 0] for x in range(64)])
     f.close()
