@@ -1,21 +1,13 @@
 #include <stdio.h>
 
-#include "utils/bit_printer.h"
-#include "utils/bit_rotation.h"
+#include "common/queue.h"
 
 int main(int agc, char** argv)
 {
-    unsigned int input = 0xFFFF0000;
+    Queue *q = queue_new(0);
 
-    for (size_t i = 0; i <= int_size; i++)
-    {
-        printIntAsBinary(rotateLeft(input, i), int_size);
-    }
+    queue_destory(q);
 
-    for (size_t i = 1; i <= int_size; i++)
-    {
-        printIntAsBinary(rotateRight(input, i), int_size);
-    }
-
+    printf("Program finished\n");
     return 0;
 }
