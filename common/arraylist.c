@@ -2,34 +2,47 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <limits.h>
 
 #include "arraylist.h"
 
-static bool need_expand(ArrayList *list)
+#define voidptr_offset(voidptr, offset) \
+    ((void *)(((char *)(voidptr)) + (offset)))
+
+static bool need_expand(ArrayList list)
 {
     return (double)list->length / (double)list->_capacity > 0.75;
 }
 
-static bool need_shrink(ArrayList *list)
+static bool need_shrink(ArrayList list)
 {
     return list->_capacity > 1 ? (double)list->length / (double)list->_capacity < 0.25 : false;
 }
 
-static ArrayList *resize(ArrayList *list, int size)
+static ArrayList resize(ArrayList list, size_t size)
 {
     list->_array = realloc(list->_array, size * list->_element_size);
+
+    if (!list->_array)
+    {
+        fprintf(stderr, "Failure allocating arraylist resize");
+        return NULL;
+    }
+
     list->_capacity = size;
-    printf("resized list to %d\n", size);
+    printf("resized list to %zu (%zu bytes)\n", size, size * CHAR_BIT);
+    return list;
 }
 
-ArrayList *_arraylist_new(int capacity, int element_size)
+ArrayList _arraylist_new(size_t capacity, size_t element_size)
 {
-    ArrayList *list = (ArrayList *)malloc(sizeof(ArrayList));
+    ArrayList list = (ArrayList)malloc(sizeof(struct arraylist));
     capacity = capacity < 1 ? 1 : capacity;
 
     if (!list)
     {
         fprintf(stderr, "Failure allocating arraylist container");
+        return NULL;
     }
 
     list->length = 0;
@@ -46,43 +59,43 @@ ArrayList *_arraylist_new(int capacity, int element_size)
     return list;
 }
 
-void arraylist_destory(ArrayList *list)
+void arraylist_destory(ArrayList list)
 {
     free(list->_array);
     free(list);
 }
 
-void *arraylist_elementAt(ArrayList *list, int index)
+void *arraylist_elementAt(ArrayList list, size_t index)
 {
     if (index >= list->length)
     {
         return NULL;
     }
 
-    return list->_array + ((list->_iterator_offset + index) % list->_capacity) * list->_element_size;
+    return ((char *)list->_array) + ((list->_iterator_offset + index) % list->_capacity) * list->_element_size;
 }
 
 /**
  * Adds an element to it's end
 */
-void arraylist_push(ArrayList *list, void *item)
+void arraylist_push(ArrayList list, void *item)
 {
     if (need_expand(list))
     {
         resize(list, list->_capacity * 2);
     }
 
-    memcpy(list->_array + ((list->_iterator_offset + list->length++) % list->_capacity) * list->_element_size, item, list->_element_size);
+    memcpy(voidptr_offset(list->_array, ((list->_iterator_offset + list->length++) % list->_capacity) * list->_element_size), item, list->_element_size);
 }
 /**
  * Removes an element from it's end 
 */
-void arraylist_pop(ArrayList *list, void *out)
+void arraylist_pop(ArrayList list, void *out)
 {
-    int position = ((list->_iterator_offset + --list->length) % list->_capacity) * list->_element_size;
-    void *output = list->_array + position;
+    size_t position = ((list->_iterator_offset + --list->length) % list->_capacity) * list->_element_size;
+    void *output = voidptr_offset(list->_array, position);
     memcpy(out, output, list->_element_size);
-    memset(list->_array + position, 0, list->_element_size);
+    memset(voidptr_offset(list->_array, position), 0, list->_element_size);
 
     if (need_shrink(list))
     {
@@ -90,5 +103,5 @@ void arraylist_pop(ArrayList *list, void *out)
     }
 }
 
-void arraylist_shift(ArrayList *list, void *out);
-void arraylist_unshift(ArrayList *list, void *item);
+void arraylist_shift(ArrayList list, void *out);
+void arraylist_unshift(ArrayList list, void *item);

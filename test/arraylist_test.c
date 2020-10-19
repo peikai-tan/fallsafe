@@ -2,30 +2,33 @@
 
 #include "../common/arraylist.h"
 
-#define TEST_SIZE 1000000
+#define TEST_SIZE 0x00FFFFFF
 
-int main(int agc, char **argv)
+int main(void)
 {
-    ArrayList *intList = arraylist_new(0, int);
+    ArrayList intList = arraylist_new(int, 0);
 
-    for (int i = 0; i < TEST_SIZE; i++)
+    for (size_t i = 0; i < TEST_SIZE; i++)
     {
         arraylist_push(intList, &i);
     }
 
-    for (int i = 0; i < TEST_SIZE - 5; i++)
+    for (size_t i = 0; i < TEST_SIZE - 5; i++)
     {
         int popped;
         arraylist_pop(intList, &popped);
-        if (popped < 10)
+        if (popped >= 0 && popped < 10)
         {
-            printf("popped at %d\n", popped);
+            printf("If popped less than 10: %d\n", popped);
         }
     }
 
-    for (int i = 0; i < intList->length; i++)
+    for (size_t i = 0; i < intList->length; i++)
     {
-        printf("item[%d]: %d\n", i, *(int*)(arraylist_elementAt(intList, i)));
+        int *item = (int *)(arraylist_elementAt(intList, i));
+        int oldVal = *item;
+        *item = *item % 2;
+        printf("item[%lu]: %d Mutated: %d\n", (unsigned long) i, oldVal, *(int *)(arraylist_elementAt(intList, i)));
     }
 
     arraylist_destory(intList);
