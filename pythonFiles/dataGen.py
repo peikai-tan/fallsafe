@@ -83,7 +83,7 @@ while True:
         y = data["y"]
         z = data["z"]
 
-        data = sense.get_orientation_radian()
+        data = sense.get_orientation_radians()
         p = data["pitch"]
         r = data["roll"]
         y = data["yaw"]
