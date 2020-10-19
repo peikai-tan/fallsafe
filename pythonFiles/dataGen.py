@@ -72,7 +72,7 @@ while True:
     f = open(file, "w", newline="")
     dataCSV = csv.writer(f)
 
-    labels = ["x", "y", "z"]
+    labels = ["x", "y", "z", "p", "r", "y"]
     dataCSV.writerow(labels)
 
     while run:
@@ -83,7 +83,12 @@ while True:
         y = data["y"]
         z = data["z"]
 
-        dataCSV.writerow([x, y, z])
+        data = sense.get_orientation_radian()
+        p = data["pitch"]
+        r = data["roll"]
+        y = data["yaw"]
+
+        dataCSV.writerow([x, y, z, p, r, y])
 
         for event in sense.stick.get_events():
             run = False if event.action == "pressed" and event.direction == "middle" else True
