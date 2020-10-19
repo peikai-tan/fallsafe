@@ -369,6 +369,29 @@ int readJoystick(int *fd, struct input_event* ev)
 	return 0;
 }
 
+char* checkJoystickDir(int evCode)
+{
+    switch (evCode)
+    {
+      case UP:
+        return "Up";
+        break;
+      case DOWN:
+        return "Down";
+        break;
+      case LEFT:
+        return "Left";
+        break;
+      case RIGHT:
+        return "Right";
+        break;
+      case ENTER:
+        return "Enter";
+        break;
+    }
+    return "Not a direction";
+}
+
 void fuckeroo()
 {
 	char path[10];

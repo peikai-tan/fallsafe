@@ -59,6 +59,16 @@
 #define MAGN_ADDR 0x1c
 #define JOY_ADDR 0xf2
 
+// Joystick enum based on event codes
+typedef enum
+{
+  UP = 103,
+  DOWN = 108,
+  LEFT = 105,
+  RIGHT = 106,
+  ENTER = 28
+} JoystickDir;
+
 //
 // Read the magnetometer values for x/y/z
 //
@@ -98,5 +108,6 @@ unsigned char shReadJoystick(int * pfbfd);
 
 int initJoystick(int *fd);
 int readJoystick(int *fd, struct input_event* ev);
+char* checkJoystickDir(int evCode);
 
 #endif // _SENSEHAT_H_
