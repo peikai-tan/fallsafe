@@ -89,7 +89,6 @@ int shInit(int iChannel, int *pfbfd)
 	}
 	printf("Mag %d\n", file_mag);
 
-<<<<<<< HEAD
 //	file_joystick = open(filename, O_RDWR);
 //	if(file_joystick < 0)
 //	{
@@ -107,25 +106,6 @@ int shInit(int iChannel, int *pfbfd)
 //		goto badexit;
 //	}
 //  printf("This is after acquiring joystick\n");
-=======
-	file_joystick = open(filename, O_RDWR);
-	if (file_joystick < 0)
-	{
-		fprintf(stderr, "Failed to open joystick bus \n");
-		goto badexit;
-	}
-	printf("Joystick  %d\n", file_joystick);
-
-	printf("errno: %d\n", errno);
-	int addr = 0xf2;
-	if (ioctl(file_joystick, I2C_SLAVE_FORCE, addr) < 0)
-	{
-		fprintf(stderr, "failed to acquire bus for joystick \n");
-		printf("errno: %d\n", errno);
-		goto badexit;
-	}
-	printf("This is after acquiring joystick\n");
->>>>>>> 99525798f798170d8967e9f1dfa27a5f3f09db69
 
 	// Init magnetometer
 	ucTemp[0] = 0x48; // output data rate/power mode
@@ -393,7 +373,7 @@ void fuckeroo()
 {
 	char path[10];
 	/* If you want to read output from command */
-	fp = popen("sudo i2cget -f -y 1 0x46", "r");
+	FILE* fp = popen("sudo i2cget -f -y 1 0x46", "r");
 	/* read output from command */
 	while (fgets(path, 10, fp) != NULL)
 		printf("%s", path);
