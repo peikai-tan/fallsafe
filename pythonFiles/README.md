@@ -9,7 +9,7 @@ https://pm2.keymetrics.io/docs/usage/quick-start/
 
     Install NodeJS if needed: https://nodejs.org/en/download/package-manager/
 
-1. `npm install -g pm2`
+1. `sudo npm install -g pm2`
 
 ### Enabling Auto Start
 1. `cd` to this folder  
