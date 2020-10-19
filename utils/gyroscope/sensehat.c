@@ -40,6 +40,15 @@ static int file_mag = -1; // magnetometer
 //static int file_joystick = -1;
 static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen);
 static int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen);
+
+int mymillis()
+{
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
+}
+
+
 //
 // Opens file system handles to the I2C devices
 //
@@ -50,7 +59,7 @@ char filename[32];
 struct fb_fix_screeninfo fix_info;
 
 	sprintf(filename, "/dev/i2c-%d", iChannel);
-        
+
 	*pfbfd = open(FILEPATH, O_RDWR);
 	if(*pfbfd == -1)
 	{
@@ -130,8 +139,7 @@ badexit:
 		file_mag = -1;
 	}
 
-	//if(file_joystick != -1)
-	//{
+	//if(file_joystick != -1)	//{
 	//	close(file_joystick);
 	//	file_joystick = -1;
 	//}
@@ -191,43 +199,59 @@ int rc;
 
 int shGet2GAccel(float *Ax, float *Ay, float *Az)
 {
-  int x = *Ax;
-  int y = *Ay;
-  int z = *Az;
+  int x = 0;
+  int y = 0;
+  int z = 0;
 
   if(shGetAccel(&x, &y, &z))
   {
     *Ax = (x * twoG_LSB) / 1000;
     *Ay = (y * twoG_LSB) / 1000;
     *Az = (z * twoG_LSB) / 1000;
-    
     return 1;
   }
-  
   return 0;
 } /* shGet2GAccel() */
 
-int shGetGyro(int *Gx, int *Gy, int *Gz)
-{
 unsigned char ucTemp[8];
 int rc;
 
 	rc = i2cRead(file_acc, 0x18+0x80, ucTemp, 6);
 	if (rc == 6)
 	{
-		*Gx = ucTemp[0] + (ucTemp[1] << 8);
-		*Gy = ucTemp[2] + (ucTemp[3] << 8);
-		*Gz = ucTemp[4] + (ucTemp[5] << 8);
+		*Gx = (int16_t) (ucTemp[0] + (ucTemp[1] << 8));
+		*Gy = (int16_t) (ucTemp[2] + (ucTemp[3] << 8));
+		*Gz = (int16_t) (ucTemp[4] + (ucTemp[5] << 8));
 		return 1;
 	}
 	return 0;
 } /* shGetGyro() */
 
+int shGet500DPSGyro(float *Gx, float *Gy, float *Gz, int * startInt)
+{
+  int x = 0;
+  int y = 0;
+  int z = 0;
+
+  if(shGetGyro(&x, &y, &z))
+  {
+    *startInt = mymillis();
+    *Gx += (float) x * G_GAIN * 0.02f * 0.02;
+    *Gy += (float) y * G_GAIN * 0.02f * 0.02;
+    *Gz += (float) z * G_GAIN * 0.02f * 0.02;
+    while(mymillis() - (*startInt) < (0.02 * 1000))
+	usleep(100);
+    return 1;
+  }
+  return 0;
+}
+
+int shGetCFAngles(float *Gx, float * Gy, float * Gz, 
+
 int shGetMagneto(int *Mx, int *My, int *Mz)
 {
-unsigned char ucTemp[8];
-int rc;
-
+	unsigned char ucTemp[8];
+	int rc;
 	rc = i2cRead(file_mag, 0x28+0x80, ucTemp, 6);
 	if (rc == 6)
 	{
@@ -258,8 +282,7 @@ void shShutdown(int * pfbfd, uint16_t * map)
 
 static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen)
 {
-int rc;
-
+	int rc;
 	rc = write(iHandle, &ucAddr, 1);
 	if(ucAddr == 0xf2)
 		printf("joy stick i2c read: %d \n", rc);
@@ -284,8 +307,8 @@ int mapLEDFrameBuffer(uint16_t ** map, int * pfbfd)
 
 int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen)
 {
-unsigned char ucTemp[512];
-int rc;
+	unsigned char ucTemp[512];
+	int rc;
 
 	if (iLen > 511 || iLen < 1 || buf == NULL)
 		return -1; // invalid write
@@ -295,7 +318,20 @@ int rc;
 	rc = write(iHandle, ucTemp, iLen+1);
 	return rc-1;
 
-} /* i2cWrite() */
+}
+void accelToAngle(float * angleX, float * angleY, float * accX, float * accY, float * accZ)
+{
+	*angleX = (float) ((atan2(*accY, *accZ) + PI) * RAD_TO_DEG);
+	*angleX -= 180.0f;
+	*angleY = (float) ((atan2(*accZ, *accX) + PI) * RAD_TO_DEG);
+	if(*angleY > 90.0f)
+		*angleY -= 270.0f;
+	else
+		*angleY += 90.0f;
+
+}
+
+ /* i2cWrite() */
 
 //unsigned char shReadJoystick(int * pfbfd)
 //{

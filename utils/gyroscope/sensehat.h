@@ -32,6 +32,9 @@
 #include <sys/types.h>
 #include <linux/i2c-dev.h>
 #include <linux/fb.h>
+#include <math.h>
+#include <sys/time.h>
+#include <time.h>
 
 // bit definitions for joystick
 #define JOY_DOWN 1
@@ -44,6 +47,11 @@
 #define FILESIZE (LED_MAX * sizeof(uint16_t))
 
 #define twoG_LSB 0.061
+#define G_GAIN  0.017453293
+#define PI 3.141592f
+#define RAD_TO_DEG 57.29578f
+#define AA 0.97
+int mymillis();
 
 //
 // Read the magnetometer values for x/y/z
@@ -79,7 +87,11 @@ int shGetAccel(int *Ax, int *Ay, int *Az);
 
 int shGet2GAccel(float *Ax, float *Ay, float *Az);
 
+int shGet500DPSGyro(float *Gx, float *Gy, float *Gz, int * intStart);
+
 int mapLEDFrameBuffer(uint16_t **  map, int * pfbfd);
+
+void accelToAngle(float * angleX, float * angleY, float * accX, float * accY, float * accZ);
 
 //unsigned char shReadJoystick(int * pfbfd);
 
