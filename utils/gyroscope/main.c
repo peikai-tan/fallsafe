@@ -14,6 +14,9 @@ int main(int argc, char *argv[])
 	int x = 0, y = 0, z = 0;
   float accel_x = 0, accel_y = 0, accel_z = 0;
 	unsigned char isDown = 0;
+  unsigned char bufSize = 0;
+  unsigned char dir = 0;
+  struct input_event ev;
 	if(shInit(1, &fbfd) == 0)
 	{
 		printf("Unable to open sense, is it connected?\n");
@@ -24,14 +27,26 @@ int main(int argc, char *argv[])
 		printf("Unable to map LED to Frame Buffer. \n");
 		return -1;
 	}
+  int val = -1;
+  if(val = initJoystick(&joystickFB) == -1)
+  {
+    printf("Unable to open joystick event\n");
+    return -1;
+  }
+  else 
+  {
+    printf("val: %d\n", val);
+  }
+
+  
 
 	mapHead = map;
 	printf("map ptr: %p \n", map);
 	while(1)
 	{
-		isDown = shReadJoystick(&fbfd);
-		printf("Joystick vals: %02x\n", isDown);
-
+//		isDown = shReadJoystick(&fbfd);
+//		printf("Joystick vals: %02x\n", isDown);
+//
 
 //		if(shGetGyro(&x, &y, &z))
 //		{
@@ -45,11 +60,16 @@ int main(int argc, char *argv[])
 //    printf("Map value: %x\n", fbfd);
 
 		//shSetPixel(3, 3, 0xF800, 1, mapHead, &fbfd);
-		sleep(1);
-		setMap(0xFFFF, map, &fbfd);
-		sleep(1);
-		setMap(0x0000, map, &fbfd);
-		sleep(1);
+
+    bufSize = readJoystick(&joystickFB, &ev);
+    printf("code: %d\n", bufSize);
+    dir = ev.code;
+    printf("ev code: %d\n", dir);
+//		sleep(1);
+//		setMap(0xFFFF, map, &fbfd);
+//		sleep(1);
+//		setMap(0x0000, map, &fbfd);
+//		sleep(1);
 	}
 	shShutdown(&fbfd, map);
 	return 0;

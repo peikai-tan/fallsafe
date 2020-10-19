@@ -36,6 +36,7 @@
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 #include <linux/fb.h>
+#include <linux/input.h>
 
 #include <i2c/smbus.h>
 
@@ -49,8 +50,8 @@
 #define JOY_ENTER 8
 #define FILEPATH "/dev/fb1"
 #define JOYSTICK_FILE "/dev/input/event0"
-#define LED_MAX 64
-#define FILESIZE (LED_MAX * sizeof(uint16_t))
+#define LED_MAX_CUST 64
+#define FILESIZE (LED_MAX_CUST * sizeof(uint16_t))
 
 #define twoG_LSB 0.061
 
@@ -95,7 +96,7 @@ int mapLEDFrameBuffer(uint16_t **  map, int * pfbfd);
 
 unsigned char shReadJoystick(int * pfbfd);
 
-int initJoystick(FILE *fp);
-int readJoystick(const FILE* fp);
+int initJoystick(int *fd);
+int readJoystick(int *fd, struct input_event* ev);
 
 #endif // _SENSEHAT_H_

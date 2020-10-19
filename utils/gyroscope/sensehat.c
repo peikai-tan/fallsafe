@@ -40,6 +40,7 @@ static int file_mag = -1; // magnetometer
 static int file_joystick = -1; // joystick
 static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen);
 static int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen);
+char name[256];
 //
 // Opens file system handles to the I2C devices
 //
@@ -88,23 +89,23 @@ struct fb_fix_screeninfo fix_info;
 	}
   printf("Mag %d\n",file_mag);
 
-	file_joystick = open(filename, O_RDWR);
-	if(file_joystick < 0)
-	{
-		fprintf(stderr, "Failed to open joystick bus \n");
-		goto badexit;
-	}
-  printf("Joystick  %d\n", file_joystick);
-
-  printf("errno: %d\n", errno);
-  int addr = 0xf2;
-	if(ioctl(file_joystick, I2C_SLAVE_FORCE, addr) < 0)
-	{
-		fprintf(stderr, "failed to acquire bus for joystick \n");
-    printf("errno: %d\n", errno);
-		goto badexit;
-	}
-  printf("This is after acquiring joystick\n");
+//	file_joystick = open(filename, O_RDWR);
+//	if(file_joystick < 0)
+//	{
+//		fprintf(stderr, "Failed to open joystick bus \n");
+//		goto badexit;
+//	}
+//  printf("Joystick  %d\n", file_joystick);
+//
+//  printf("errno: %d\n", errno);
+//  int addr = 0xf2;
+//	if(ioctl(file_joystick, I2C_SLAVE_FORCE, addr) < 0)
+//	{
+//		fprintf(stderr, "failed to acquire bus for joystick \n");
+//    printf("errno: %d\n", errno);
+//		goto badexit;
+//	}
+//  printf("This is after acquiring joystick\n");
 
 	// Init magnetometer
 	ucTemp[0] = 0x48; // output data rate/power mode
@@ -323,17 +324,27 @@ unsigned char shReadJoystick(int * pfbfd)
 	return 0;
 }
 
-int initJoystick(int* fd)
+int initJoystick(int *fd)
 {
   *fd = open(JOYSTICK_FILE, O_RDONLY);
   if (*fd == -1) 
   {
     printf("Unable to open file! Errno: %d\n", errno);
-    return 0;
+    return -1;
+  }
+  int retVal = ioctl(*fd, EVIOCGNAME(sizeof(name)), name);
+  if (retVal == -1)
+  {
+    printf("Unable to get event!!\n");
+    return -1;
   }
   return 0;
 }
-int readJoystick(const FILE* fp)
+int readJoystick(int *fd, struct input_event* ev)
 {
+  int codeSize = -1;
+  codeSize = read(*fd, ev, sizeof(struct input_event));
 
+  
+  return codeSize;
 }
