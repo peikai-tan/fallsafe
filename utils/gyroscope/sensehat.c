@@ -35,9 +35,9 @@
 //
 #include "sensehat.h"
 
-static int file_acc = -1; // accelerometer/gyro
-static int file_mag = -1; // magnetometer
-//static int file_joystick = -1;
+static int file_acc = -1;	   // accelerometer/gyro
+static int file_mag = -1;	   // magnetometer
+static int file_joystick = -1; // joystick
 static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen);
 static int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen);
 
@@ -47,34 +47,34 @@ int mymillis()
 	gettimeofday(&tv, NULL);
 	return (tv.tv_sec) * 1000 + (tv.tv_usec)/1000;
 }
-
-
+char name[256];
 //
 // Opens file system handles to the I2C devices
 //
-int shInit(int iChannel, int * pfbfd)
+int shInit(int iChannel, int *pfbfd)
 {
-unsigned char ucTemp[32];
-char filename[32];
-struct fb_fix_screeninfo fix_info;
+	unsigned char ucTemp[32];
+	char filename[32];
+	struct fb_fix_screeninfo fix_info;
 
 	sprintf(filename, "/dev/i2c-%d", iChannel);
+	printf("filename %s\n", filename);
 
 	*pfbfd = open(FILEPATH, O_RDWR);
-	if(*pfbfd == -1)
+	if (*pfbfd == -1)
 	{
 		perror("Error (call to 'open')");
 		goto badexit;
 	}
 
-	if(ioctl(*pfbfd, FBIOGET_FSCREENINFO, &fix_info) == -1)
+	if (ioctl(*pfbfd, FBIOGET_FSCREENINFO, &fix_info) == -1)
 	{
 		perror("Error (call to 'ioctl')");
 		close(*pfbfd);
 		goto badexit;
 	}
 
-	if(strcmp(fix_info.id, "RPi-Sense FB") != 0)
+	if (strcmp(fix_info.id, "RPi-Sense FB") != 0)
 	{
 		printf("%s \n", "Error: RPi-Sense FB not found");
 		close(*pfbfd);
@@ -82,47 +82,54 @@ struct fb_fix_screeninfo fix_info;
 	}
 
 	file_acc = open(filename, O_RDWR);
-	if (ioctl(file_acc, I2C_SLAVE, 0x6a) < 0)
+	if (ioctl(file_acc, I2C_SLAVE, ACCEL_ADDR) < 0)
 	{
 		fprintf(stderr, "Failed to acquire bus for accelerometer\n");
 		goto badexit;
 	}
+	printf("Aceel %d\n", file_acc);
 	file_mag = open(filename, O_RDWR);
-	if (ioctl(file_mag, I2C_SLAVE, 0x1c) < 0)
+	if (ioctl(file_mag, I2C_SLAVE, MAGN_ADDR) < 0)
 	{
 		fprintf(stderr, "Failed to acquire bus for magnetometer\n");
 		goto badexit;
 	}
+	printf("Mag %d\n", file_mag);
 
-	//file_joystick = open(filename, O_RDWR);
-	//if(file_joystick < 0)
-	//{
-	//	fprintf(stderr, "Failed to open joystick bus \n");
-	//	goto badexit;
-	//}
-
-	//if(ioctl(file_joystick, I2C_SLAVE, 0xf2) < 0)
-	//{
-	//	fprintf(stderr, "failed to acquire bus for joystick \n");
-	//	goto badexit;
-	//}
+//	file_joystick = open(filename, O_RDWR);
+//	if(file_joystick < 0)
+//	{
+//		fprintf(stderr, "Failed to open joystick bus \n");
+//		goto badexit;
+//	}
+//  printf("Joystick  %d\n", file_joystick);
+//
+//  printf("errno: %d\n", errno);
+//  int addr = 0xf2;
+//	if(ioctl(file_joystick, I2C_SLAVE_FORCE, addr) < 0)
+//	{
+//		fprintf(stderr, "failed to acquire bus for joystick \n");
+//    printf("errno: %d\n", errno);
+//		goto badexit;
+//	}
+//  printf("This is after acquiring joystick\n");
 
 	// Init magnetometer
 	ucTemp[0] = 0x48; // output data rate/power mode
 	ucTemp[1] = 0x00; // default scale
 	ucTemp[2] = 0x00; // continuous conversion
 	ucTemp[3] = 0x08; // high performance mode
-	i2cWrite(file_mag, 0x20+0x80, ucTemp, 4);
+	i2cWrite(file_mag, 0x20 + 0x80, ucTemp, 4);
 
 	// Init accelerometer/gyroscope
 	ucTemp[0] = 0x60; // 119hz accel
 	i2cWrite(file_acc, 0x20, ucTemp, 1);
 	ucTemp[0] = 0x38; // enable gyro on all axes
 	i2cWrite(file_acc, 0x1e, ucTemp, 1);
-        ucTemp[0] = 0x28; // data rate + full scale + bw selection
-// bits:        ODR_G2 | ODR_G1 | ODR_G0 | FS_G1 | FS_G0 | 0 | BW_G1 | BW_G0
-// 0x28 = 14.9hz, 500dps
-        i2cWrite(file_acc, 0x10, ucTemp, 1); // gyro ctrl_reg1
+	ucTemp[0] = 0x28;					 // data rate + full scale + bw selection
+										 // bits:        ODR_G2 | ODR_G1 | ODR_G0 | FS_G1 | FS_G0 | 0 | BW_G1 | BW_G0
+										 // 0x28 = 14.9hz, 500dps
+	i2cWrite(file_acc, 0x10, ucTemp, 1); // gyro ctrl_reg1
 
 	return 1;
 
@@ -139,24 +146,25 @@ badexit:
 		file_mag = -1;
 	}
 
-	//if(file_joystick != -1)	//{
-	//	close(file_joystick);
-	//	file_joystick = -1;
-	//}
+	if (file_joystick != -1)
+	{
+		close(file_joystick);
+		file_joystick = -1;
+	}
 	return 0;
 } /* shInit() */
 
 //
 // Set a single pixel on the 8x8 LED Array
 //
-int shSetPixel(int x, int y, uint16_t color, int bUpdate, uint16_t * map_headptr, int * pfbfd)
+int shSetPixel(int x, int y, uint16_t color, int bUpdate, uint16_t *map_headptr, int *pfbfd)
 {
-int i = 0;
+	int i = 0;
 
 	if (x >= 0 && x < 8 && y >= 0 && y < 8 && *pfbfd >= 0)
 	{
-		printf("hello\n");
-		i = (y*8)+x; // offset into array
+		//printf("hello\n");
+		i = (y * 8) + x; // offset into array
 		if (bUpdate)
 			map_headptr[i] = color;
 		return 1;
@@ -164,9 +172,9 @@ int i = 0;
 	return 0;
 } /* shSetPixel() */
 
-int setMap(uint16_t color,  uint16_t * map, int * pfbfd)
+int setMap(uint16_t color, uint16_t *map, int *pfbfd)
 {
-	if(*pfbfd >= 0)
+	if (*pfbfd >= 0)
 	{
 		memset(map, color, FILESIZE);
 		return 1;
@@ -176,10 +184,10 @@ int setMap(uint16_t color,  uint16_t * map, int * pfbfd)
 
 int shGetAccel(int *Ax, int *Ay, int *Az)
 {
-unsigned char ucTemp[8];
-int rc;
+	unsigned char ucTemp[8];
+	int rc;
 
-	rc = i2cRead(file_acc, 0x28+0x80, ucTemp, 6);
+	rc = i2cRead(file_acc, 0x28 + 0x80, ucTemp, 6);
 	if (rc == 6)
 	{
 		int x, y, z;
@@ -188,10 +196,15 @@ int rc;
 		y = ucTemp[2] + (ucTemp[3] << 8);
 		z = ucTemp[4] + (ucTemp[5] << 8);
 		// fix the signed values
-		if (x > 32767) x -= 65536;
-		if (y > 32767) y -= 65536;
-		if (z > 32767) z -= 65536;
-		*Ax = x; *Ay = y; *Az = z;
+		if (x > 32767)
+			x -= 65536;
+		if (y > 32767)
+			y -= 65536;
+		if (z > 32767)
+			z -= 65536;
+		*Ax = x;
+		*Ay = y;
+		*Az = z;
 		return 1;
 	}
 	return 0;
@@ -199,24 +212,28 @@ int rc;
 
 int shGet2GAccel(float *Ax, float *Ay, float *Az)
 {
-  int x = 0;
-  int y = 0;
-  int z = 0;
+	int x = *Ax;
+	int y = *Ay;
+	int z = *Az;
 
-  if(shGetAccel(&x, &y, &z))
-  {
-    *Ax = (x * twoG_LSB) / 1000;
-    *Ay = (y * twoG_LSB) / 1000;
-    *Az = (z * twoG_LSB) / 1000;
-    return 1;
-  }
-  return 0;
+	if (shGetAccel(&x, &y, &z))
+	{
+		*Ax = (x * twoG_LSB) / 1000;
+		*Ay = (y * twoG_LSB) / 1000;
+		*Az = (z * twoG_LSB) / 1000;
+
+		return 1;
+	}
+
+	return 0;
 } /* shGet2GAccel() */
 
-unsigned char ucTemp[8];
-int rc;
+int shGetGyro(int *Gx, int *Gy, int *Gz)
+{
+	unsigned char ucTemp[8];
+	int rc;
 
-	rc = i2cRead(file_acc, 0x18+0x80, ucTemp, 6);
+	rc = i2cRead(file_acc, 0x18 + 0x80, ucTemp, 6);
 	if (rc == 6)
 	{
 		*Gx = (int16_t) (ucTemp[0] + (ucTemp[1] << 8));
@@ -246,7 +263,6 @@ int shGet500DPSGyro(float *Gx, float *Gy, float *Gz, int * startInt)
   return 0;
 }
 
-int shGetCFAngles(float *Gx, float * Gy, float * Gz, 
 
 int shGetMagneto(int *Mx, int *My, int *Mz)
 {
@@ -260,22 +276,30 @@ int shGetMagneto(int *Mx, int *My, int *Mz)
 		y = ucTemp[2] + (ucTemp[3] << 8);
 		z = ucTemp[4] + (ucTemp[5] << 8);
 		// fix signed values
-		if (x > 32767) x -= 65536;
-		if (y > 32767) y -= 65536;
-		if (z > 32767) z -= 65536;
-		*Mx = z; *My = y; *Mz = z;
+		if (x > 32767)
+			x -= 65536;
+		if (y > 32767)
+			y -= 65536;
+		if (z > 32767)
+			z -= 65536;
+		*Mx = z;
+		*My = y;
+		*Mz = z;
 		return 1;
 	}
 	return 0;
 } /* shGetMagneto() */
 
-void shShutdown(int * pfbfd, uint16_t * map)
+void shShutdown(int *pfbfd, uint16_t *map)
 {
-	if (file_acc != -1) close(file_acc);
-	if (file_mag != -1) close(file_mag);
-	if (*pfbfd != 1) close (*pfbfd);
+	if (file_acc != -1)
+		close(file_acc);
+	if (file_mag != -1)
+		close(file_mag);
+	if (*pfbfd != 1)
+		close(*pfbfd);
 
-	if(munmap(map, FILESIZE) == -1)
+	if (munmap(map, FILESIZE) == -1)
 		perror("Error un-mapping the file");
 	file_acc = file_mag = -1;
 } /* shShutdown() */
@@ -284,19 +308,22 @@ static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iL
 {
 	int rc;
 	rc = write(iHandle, &ucAddr, 1);
-	if(ucAddr == 0xf2)
+	if (ucAddr == 0xf2)
 		printf("joy stick i2c read: %d \n", rc);
 	if (rc == 1)
 	{
 		rc = read(iHandle, buf, iLen);
+		printf("i2c read: %d \n", rc);
+		printf("i2c buf: %d \n", buf[0]);
+		printf("i2c buf: %d \n", buf[1]);
 	}
 	return rc;
 } /* i2cRead() */
 
-int mapLEDFrameBuffer(uint16_t ** map, int * pfbfd)
+int mapLEDFrameBuffer(uint16_t **map, int *pfbfd)
 {
 	*map = mmap(NULL, FILESIZE, PROT_READ | PROT_WRITE, MAP_SHARED, *pfbfd, 0);
-	if(map == MAP_FAILED)
+	if (map == MAP_FAILED)
 	{
 		close(*pfbfd);
 		perror("Error mapping the file");
@@ -313,10 +340,11 @@ int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen)
 	if (iLen > 511 || iLen < 1 || buf == NULL)
 		return -1; // invalid write
 
-	ucTemp[0] = ucAddr; // send the register number first 
+	ucTemp[0] = ucAddr; // send the register number first
+	printf("Register number: %d %x\n", ucAddr, ucAddr);
 	memcpy(&ucTemp[1], buf, iLen); // followed by the data
-	rc = write(iHandle, ucTemp, iLen+1);
-	return rc-1;
+	rc = write(iHandle, ucTemp, iLen + 1);
+	return rc - 1;
 
 }
 void accelToAngle(float * angleX, float * angleY, float * accX, float * accY, float * accZ)
@@ -333,15 +361,81 @@ void accelToAngle(float * angleX, float * angleY, float * accX, float * accY, fl
 
  /* i2cWrite() */
 
-//unsigned char shReadJoystick(int * pfbfd)
-//{
-//	unsigned char ucBuf[2];
-//        int rc = 0;
-//	if(*pfbfd != -1)
-//	{
-//		rc = i2cRead(*pfbfd, 0xf2, ucBuf, 1);
-//		if(rc == 1)
-//			return ucBuf[0];
-//	}
-//	return 0;
-//}
+unsigned char shReadJoystick(int *pfbfd)
+{
+	unsigned char ucBuf[2];
+	int rc = 0;
+	if (*pfbfd != -1)
+	{
+		rc = i2cRead(*pfbfd, 0xf2, ucBuf, 1);
+		if (rc == 1)
+			printf("Value in buffer: %d\n", ucBuf[0]);
+		return ucBuf[0];
+	}
+	return 0;
+}
+
+int initJoystick(int *fd)
+{
+  *fd = open(JOYSTICK_FILE, O_RDONLY);
+  if (*fd == -1) 
+  {
+    printf("Unable to open file! Errno: %d\n", errno);
+    return -1;
+  }
+  int retVal = ioctl(*fd, EVIOCGNAME(sizeof(name)), name);
+  if (retVal == -1)
+  {
+    printf("Unable to get event!!\n");
+    return -1;
+  }
+  return 0;
+}
+int readJoystick(int *fd, struct input_event* ev)
+{
+  int codeSize = -1;
+  codeSize = read(*fd, ev, sizeof(struct input_event));
+
+  
+  return codeSize;
+	*fd = open(JOYSTICK_FILE, O_RDONLY);
+	if (*fd == -1)
+	{
+		printf("Unable to open file! Errno: %d\n", errno);
+		return 0;
+	}
+	return 0;
+}
+
+char* checkJoystickDir(int evCode)
+{
+    switch (evCode)
+    {
+      case UP:
+        return "Up";
+        break;
+      case DOWN:
+        return "Down";
+        break;
+      case LEFT:
+        return "Left";
+        break;
+      case RIGHT:
+        return "Right";
+        break;
+      case ENTER:
+        return "Enter";
+        break;
+    }
+    return "Not a direction";
+}
+
+void fuckeroo()
+{
+	char path[10];
+	/* If you want to read output from command */
+	FILE* fp = popen("sudo i2cget -f -y 1 0x46", "r");
+	/* read output from command */
+	while (fgets(path, 10, fp) != NULL)
+		printf("%s", path);
+}

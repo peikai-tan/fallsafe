@@ -25,16 +25,23 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+
 #include <fcntl.h>
+
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 #include <linux/fb.h>
 #include <math.h>
 #include <sys/time.h>
 #include <time.h>
+#include <linux/input.h>
+#include <i2c/smbus.h>
+#include <errno.h>
 
 // bit definitions for joystick
 #define JOY_DOWN 1
@@ -43,8 +50,9 @@
 #define JOY_RIGHT 2
 #define JOY_ENTER 8
 #define FILEPATH "/dev/fb1"
-#define LED_MAX 64
-#define FILESIZE (LED_MAX * sizeof(uint16_t))
+#define JOYSTICK_FILE "/dev/input/event0"
+#define LED_MAX_CUST 64
+#define FILESIZE (LED_MAX_CUST * sizeof(uint16_t))
 
 #define twoG_LSB 0.061
 #define G_GAIN  0.017453293
@@ -52,6 +60,20 @@
 #define RAD_TO_DEG 57.29578f
 #define AA 0.97
 int mymillis();
+
+#define ACCEL_ADDR 0x6a
+#define MAGN_ADDR 0x1c
+#define JOY_ADDR 0xf2
+
+// Joystick enum based on event codes
+typedef enum
+{
+  UP = 103,
+  DOWN = 108,
+  LEFT = 105,
+  RIGHT = 106,
+  ENTER = 28
+} JoystickDir;
 
 //
 // Read the magnetometer values for x/y/z
@@ -75,7 +97,6 @@ int setMap(uint16_t color, uint16_t * map, int * pfbfd);
 //
 int shInit(int iChannel, int * pfbfd);
 
-
 //
 // Frees resources and closes handles
 //
@@ -93,7 +114,10 @@ int mapLEDFrameBuffer(uint16_t **  map, int * pfbfd);
 
 void accelToAngle(float * angleX, float * angleY, float * accX, float * accY, float * accZ);
 
-//unsigned char shReadJoystick(int * pfbfd);
+unsigned char shReadJoystick(int * pfbfd);
 
+int initJoystick(int *fd);
+int readJoystick(int *fd, struct input_event* ev);
+char * checkJoystickDir(int evCode);
 
 #endif // _SENSEHAT_H_
