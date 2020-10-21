@@ -7,7 +7,7 @@ typedef struct arraylist
 {
     void *_array; /* The actual array pointer*/
     size_t _element_size;
-    size_t _iterator_offset; /* The actual position where the index '0' is. Usually is 0 but varies if shift and unshift used to operate the list. */
+    long long _iterator_offset; /* The actual position where the index '0' is. Usually is 0 but varies if shift and unshift used to operate the list. */
     size_t _capacity;
     size_t length;
 }* ArrayList;

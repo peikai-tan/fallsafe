@@ -9,6 +9,9 @@
 #define voidptr_offset(voidptr, offset) \
     ((void *)(((char *)(voidptr)) + (offset)))
 
+#define list_position(list, index) \
+    (((list->_iterator_offset + index) % list->_capacity) * list->_element_size)
+
 static bool need_expand(ArrayList list)
 {
     return (double)list->length / (double)list->_capacity > 0.75;
@@ -72,7 +75,7 @@ void *arraylist_elementAt(ArrayList list, size_t index)
         return NULL;
     }
 
-    return ((char *)list->_array) + ((list->_iterator_offset + index) % list->_capacity) * list->_element_size;
+    return ((char *)list->_array) + list_position(list, index);
 }
 
 /**
@@ -85,14 +88,14 @@ void arraylist_push(ArrayList list, void *item)
         resize(list, list->_capacity * 2);
     }
 
-    memcpy(voidptr_offset(list->_array, ((list->_iterator_offset + list->length++) % list->_capacity) * list->_element_size), item, list->_element_size);
+    memcpy(voidptr_offset(list->_array, list_position(list, list->length++)), item, list->_element_size);
 }
 /**
  * Removes an element from it's end 
 */
 void arraylist_pop(ArrayList list, void *out)
 {
-    size_t position = ((list->_iterator_offset + --list->length) % list->_capacity) * list->_element_size;
+    size_t position = list_position(list, --list->length);
     void *output = voidptr_offset(list->_array, position);
     memcpy(out, output, list->_element_size);
     memset(voidptr_offset(list->_array, position), 0, list->_element_size);

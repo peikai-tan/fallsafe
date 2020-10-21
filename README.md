@@ -36,6 +36,6 @@ The joystick will allow the user to disable the buzzer when false-positive occur
 #### MISC
 gcc flags  
 ```
--std=c99 -lm -Wall -Wextra -pedantic
+-std=c99 -lm -Wall -Wextra -Werror -pedantic
 ```
 
