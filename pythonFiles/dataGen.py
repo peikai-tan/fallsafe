@@ -45,7 +45,7 @@ green = [0, 100, 0]
 blank = [0, 0, 0]
 
 acts = ["walking", "running", "jumping",
-        "stationary", "e"]  # Expected activities
+        "stationary", "falling"  , "e"]  # Expected activities
 
 sense = SenseHat()
 atexit.register(sense.clear)
