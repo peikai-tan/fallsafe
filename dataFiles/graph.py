@@ -3,21 +3,20 @@ import csv
 import numpy as np
 from matplotlib import pyplot as plt
 
-folders = ["running", "walking", "stationary"]
+folders = ["running", "walking", "stationary", "jumping"]
 
-option = 0
+option = 3
 
 os.chdir(os.getcwd() + "/dataFiles/")
-print(os.getcwd())
+
 files = os.listdir(folders[option])
 
 
 for f in files:
-    print(f)
     f = csv.reader(open(folders[option] + "/" + f, "r"))
-    next(f, None)
+    next(f)
 
-    arr = np.array([[float(x) for x in mag] for mag in f])
+    dataset = [[float(dat) for dat in row] for row in f]
 
-    plt.plot(range(len(arr)), arr)
+    plt.plot(range(len(dataset)), dataset)
     plt.show()
