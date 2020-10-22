@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 	struct timeval tvBegin, tvEnd, tvDiff;
 	gettimeofday(&tvBegin, NULL);
  	unsigned char bufSize = 0;
- 	 struct input_event ev;
+ 	struct input_event ev;
 	if(shInit(1, &fbfd) == 0)
 	{
 		printf("Unable to open sense, is it connected?\n");
@@ -44,10 +44,10 @@ int main(int argc, char *argv[])
 //		printf("Joystick vals: %02x\n", isDown);
 //
 
-//		if(shGetGyro(&x, &y, &z))
-//		{
-//			printf("Gyro: X = %d, Y= %d, Z = %d \n", x, y, z);
-//		}
+		if(shGet500DPSGyro(&accel_x, &accel_y, &accel_z, &startInt))
+		{
+			printf("Gyro: X = %f, Y= %f, Z = %f \n", accel_x, accel_y, accel_z);
+		}
 //    if(shGet2GAccel(&accel_x, &accel_y, &accel_z))
 //    {
 //      printf("Accel: X = %f, Y = %f, Z = %f \n", accel_x, accel_y, accel_z);
@@ -57,12 +57,12 @@ int main(int argc, char *argv[])
 
 		//shSetPixel(3, 3, 0xF800, 1, mapHead, &fbfd);
 
-    		bufSize = readJoystick(&joystickFB, &ev);
-//    printf("Type: %d\tCode: %d\tValue: %d\n", ev.type, ev.code, ev.value);
-    		if(ev.type > 0)
-    		{
-      			printf("Direction is: %s\n", checkJoystickDir(ev.code));
-    		}
+    		//bufSize = readJoystick(&joystickFB, &ev);
+		//printf("Type: %d\tCode: %d\tValue: %d\n", ev.type, ev.code, ev.value);
+    		//if(ev.type > 0)
+    		//{
+      		//	printf("Direction is: %s\n", checkJoystickDir(ev.code));
+    		//}
     // Switch statements to detect event from joystick
 //    switch (dir)
 //    {
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 //        break;
 //    }
     //printf("ev code: %d\n", dir);
-//		sleep(1);
+		sleep(1);
 //		setMap(0xFFFF, map, &fbfd);
 //		sleep(1);
 //		setMap(0x0000, map, &fbfd);
