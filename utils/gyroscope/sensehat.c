@@ -339,57 +339,78 @@ unsigned char shReadJoystick(int *pfbfd)
 
 int initJoystick(int *fd)
 {
-  *fd = open(JOYSTICK_FILE, O_RDONLY);
-  if (*fd == -1) 
-  {
-    printf("Unable to open file! Errno: %d\n", errno);
-    return -1;
-  }
-  int retVal = ioctl(*fd, EVIOCGNAME(sizeof(name)), name);
-  if (retVal == -1)
-  {
-    printf("Unable to get event!!\n");
-    return -1;
-  }
-  return 0;
+    *fd = open(JOYSTICK_FILE, O_RDONLY);
+    if (*fd == -1) 
+    {
+        printf("Unable to open file! Errno: %d\n", errno);
+        return -1;
+    }
+    int retVal = ioctl(*fd, EVIOCGNAME(sizeof(name)), name);
+    if (retVal == -1)
+    {
+        printf("Unable to get event!!\n");
+        return -1;
+    }
+    return 0;
 }
-int readJoystick(int *fd, struct input_event* ev)
+int readJoystick(int *fd, Joystick *joy)
 {
-  int codeSize = -1;
-  codeSize = read(*fd, ev, sizeof(struct input_event));
+    int codeSize = -1;
+    struct input_event ev;
+    codeSize = read(*fd, &ev, sizeof(struct input_event));
 
-  
-  return codeSize;
-	*fd = open(JOYSTICK_FILE, O_RDONLY);
-	if (*fd == -1)
-	{
-		printf("Unable to open file! Errno: %d\n", errno);
-		return 0;
-	}
-	return 0;
+    if (codeSize > 0)
+    {
+        checkJoystickState(ev.type, joy);
+        checkJoystickDir(ev.code, joy);
+
+        return 1;
+    }
+
+    return 0;
 }
 
-char* checkJoystickDir(int evCode)
+void checkJoystickDir(int evCode, Joystick *joy)
 {
     switch (evCode)
     {
-      case UP:
-        return "Up";
-        break;
-      case DOWN:
-        return "Down";
-        break;
-      case LEFT:
-        return "Left";
-        break;
-      case RIGHT:
-        return "Right";
-        break;
-      case ENTER:
-        return "Enter";
-        break;
+        case UP:
+            (*joy).dir=UP;
+            (*joy).direction="UP";
+            break;
+        case DOWN:
+            (*joy).dir=DOWN;
+            (*joy).direction="DOWN";
+            break;
+        case LEFT:
+            (*joy).dir=LEFT;
+            (*joy).direction="LEFT";
+            break;
+        case RIGHT:
+            (*joy).dir=RIGHT;
+            (*joy).direction="RIGHT";
+            break;
+        case ENTER:
+            (*joy).dir=ENTER;
+            (*joy).direction="ENTER";
+            break;
     }
-    return "Not a direction";
+}
+
+void checkJoystickState(int evType, Joystick *joy)
+{
+    switch (evType)
+    {
+        case RELEASE:
+            (*joy).state=RELEASE;
+            break;
+        case PRESSED:
+            (*joy).state=PRESSED;
+            break;
+        case HOLD:
+            (*joy).state=HOLD;
+            break;
+    }
 }
 
 void fuckeroo()

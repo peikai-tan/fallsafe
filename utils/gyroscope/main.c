@@ -5,14 +5,12 @@
 int main(int argc, char *argv[])
 {
 	int fbfd = 0;
-  int joystickFB = 0;
+    int joystickFB = 0;
 	uint16_t * map = 0;
 	uint16_t * mapHead = 0;
-  float accel_x = 0, accel_y = 0, accel_z = 0;
 //	unsigned char isDown = 0;
-  unsigned char bufSize = 0;
 //  unsigned char dir = 0;
-  struct input_event ev;
+    Joystick joystick;
 	if(shInit(1, &fbfd) == 0)
 	{
 		printf("Unable to open sense, is it connected?\n");
@@ -24,7 +22,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
   int val = -1;
-  if(val = initJoystick(&joystickFB) == -1)
+  if((val = initJoystick(&joystickFB)) == -1)
   {
     printf("Unable to open joystick event\n");
     return -1;
@@ -33,8 +31,6 @@ int main(int argc, char *argv[])
   {
     printf("val: %d\n", val);
   }
-
-  
 
 	mapHead = map;
 	printf("map ptr: %p \n", map);
@@ -57,31 +53,12 @@ int main(int argc, char *argv[])
 
 		//shSetPixel(3, 3, 0xF800, 1, mapHead, &fbfd);
 
-    bufSize = readJoystick(&joystickFB, &ev);
-//    printf("Type: %d\tCode: %d\tValue: %d\n", ev.type, ev.code, ev.value);
-    if(ev.type > 0)
+    readJoystick(&joystickFB, &joystick);
+    if(joystick.state == PRESSED)
     {
-      printf("Direction is: %s\n", checkJoystickDir(ev.code));
+        printf("Joystick direction: %s\n", joystick.direction);
     }
-    // Switch statements to detect event from joystick
-//    switch (dir)
-//    {
-//      case UP:
-//        printf("Up\n");
-//        break;
-//      case DOWN:
-//        printf("Down\n");
-//        break;
-//      case LEFT:
-//        printf("Left\n");
-//        break;
-//      case RIGHT:
-//        printf("Right\n");
-//        break;
-//      case ENTER:
-//        printf("Pressed\n");
-//        break;
-//    }
+
     //printf("ev code: %d\n", dir);
 //		sleep(1);
 //		setMap(0xFFFF, map, &fbfd);

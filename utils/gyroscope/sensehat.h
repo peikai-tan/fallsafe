@@ -62,13 +62,27 @@
 // Joystick enum based on event codes
 typedef enum
 {
-  UP = 103,
-  DOWN = 108,
-  LEFT = 105,
-  RIGHT = 106,
-  ENTER = 28
+    UP = 103,
+    DOWN = 108,
+    LEFT = 105,
+    RIGHT = 106,
+    ENTER = 28
 } JoystickDir;
 
+typedef enum
+{
+    RELEASE = 0,
+    PRESSED = 1,
+    HOLD = 2
+} JoystickState;
+
+typedef struct
+{
+    JoystickDir dir;
+    char *direction;
+    JoystickState state;
+    char *status;
+} Joystick;
 //
 // Read the magnetometer values for x/y/z
 //
@@ -107,7 +121,8 @@ int mapLEDFrameBuffer(uint16_t **  map, int * pfbfd);
 unsigned char shReadJoystick(int * pfbfd);
 
 int initJoystick(int *fd);
-int readJoystick(int *fd, struct input_event* ev);
-char* checkJoystickDir(int evCode);
+int readJoystick(int *fd, Joystick *joy);
+void checkJoystickDir(int evCode, Joystick *joy);
+void checkJoystickState(int evType, Joystick *joy);
 
 #endif // _SENSEHAT_H_
