@@ -36,10 +36,11 @@
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 #include <linux/fb.h>
+#include <math.h>
+#include <sys/time.h>
+#include <time.h>
 #include <linux/input.h>
-
 #include <i2c/smbus.h>
-
 #include <errno.h>
 
 // bit definitions for joystick
@@ -54,6 +55,11 @@
 #define FILESIZE (LED_MAX_CUST * sizeof(uint16_t))
 
 #define twoG_LSB 0.061
+#define G_GAIN  0.017453293
+#define PI 3.141592f
+#define RAD_TO_DEG 57.29578f
+#define AA 0.97
+int mymillis();
 
 #define ACCEL_ADDR 0x6a
 #define MAGN_ADDR 0x1c
@@ -116,7 +122,11 @@ int shGetAccel(int *Ax, int *Ay, int *Az);
 
 int shGet2GAccel(float *Ax, float *Ay, float *Az);
 
+int shGet500DPSGyro(float *Gx, float *Gy, float *Gz, int * intStart);
+
 int mapLEDFrameBuffer(uint16_t **  map, int * pfbfd);
+
+void accelToAngle(float * angleX, float * angleY, float * accX, float * accY, float * accZ);
 
 unsigned char shReadJoystick(int * pfbfd);
 
