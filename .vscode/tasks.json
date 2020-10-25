@@ -1,0 +1,62 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "gdb debug main",
+            "windows": {
+                "command": "mingw32-make"
+            },
+            "linux": {
+                "command": "make"
+            },
+            "args": [
+                "debug-main"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "shell",
+            "label": "gdb debug common test",
+            "windows": {
+                "command": "mingw32-make"
+            },
+            "linux": {
+                "command": "make"
+            },
+            "args": [
+                "debug-common",
+                "file=test/arraylist_test.c"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "panel": "shared",
+            }
+        },
+        {
+            "label": "postdebugKillTerminal",
+            "type": "process",
+            "command": [
+                "${command:workbench.action.terminal.kill}",
+            ],
+        }
+    ],
+    "version": "2.0.0"
+}
