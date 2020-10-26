@@ -19,6 +19,10 @@ test-vector3: file=./test/vector3_test.c
 test-vector3: debug-common
 	./test-run
 
+test-array2d: file=./test/array2d_test.c
+test-array2d: debug-common
+	./test-run
+
 O-common:
 	gcc -O3 $(CFLAGS) $(LIBS) $(file) ./common/*.c -o test-O
 
