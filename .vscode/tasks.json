@@ -34,7 +34,7 @@
             },
             "args": [
                 "debug-common",
-                "file=test/arraylist_test.c"
+                "file=test/queue_test.c"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

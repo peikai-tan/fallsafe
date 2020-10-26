@@ -7,7 +7,7 @@
  * Constructs a new queue data structure.
  * @capacity: initial capacity of queue
 */
-Queue queue_new(int capacity, int elementSize)
+Queue _queue_new(int capacity, int elementSize)
 {
     Queue output = (Queue)malloc(sizeof(struct queue));
 
@@ -22,9 +22,27 @@ Queue queue_new(int capacity, int elementSize)
 }
 
 /**
- * Queue destructer
+ * Queue destructor
 */
-void queue_destory(Queue queue)
+void queue_destroy(Queue queue)
 {
+    arraylist_destroy(queue->_list);
     free(queue);
+}
+
+void queue_enqueue(Queue queue, void *item)
+{
+    arraylist_push(queue->_list, item);
+    queue->length = queue->_list->length;
+}
+
+void queue_dequeue(Queue queue, void *out)
+{
+    arraylist_shift(queue->_list, out);
+    queue->length = queue->_list->length;
+}
+
+void *queue_peek(Queue queue)
+{
+    return arraylist_elementAt(queue->_list, 0);
 }

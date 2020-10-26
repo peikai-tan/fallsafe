@@ -6,11 +6,14 @@
 typedef struct queue
 {
     ArrayList _list;
-    int length;
+    size_t length;
 }* Queue;
 
-Queue queue_new(int capacity, int elementSize);
-void queue_destory(Queue queue);
+#define queue_new(type, capacity) \
+    _queue_new(capacity, sizeof(type))
+
+Queue _queue_new(int capacity, int elementSize);
+void queue_destroy(Queue queue);
 
 void queue_enqueue(Queue queue, void *item);
 void queue_dequeue(Queue queue, void *out);

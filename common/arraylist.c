@@ -32,7 +32,7 @@ static bool need_shrink(ArrayList list)
 static ArrayList compact(ArrayList list, size_t target_size)
 {
     size_t distance = list->_capacity - target_size;
-    size_t newOffset = list->_iterator_offset - distance;
+    size_t newOffset = distance > list->_iterator_offset ? 0 : list->_iterator_offset - distance;
     size_t offsetPartLength = list->_capacity - list->_iterator_offset;
 
     void *source = voidptr_offset(list->_array, list->_iterator_offset * list->_element_size);
