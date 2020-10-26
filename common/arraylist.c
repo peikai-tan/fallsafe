@@ -71,7 +71,7 @@ static ArrayList widen(ArrayList list, size_t target_size)
     size_t offsetPartLength = list->_capacity - list->_iterator_offset;
     size_t newOffset = list->_iterator_offset + expansionSize;
 
-    void* newAlloc = realloc(list->_array, target_size * list->_element_size);
+    list->_array = realloc(list->_array, target_size * list->_element_size);
 
     if (!list->_array)
     {

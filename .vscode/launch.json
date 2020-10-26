@@ -29,7 +29,7 @@
             "name": "gcc - Build and debug common test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/test",
+            "program": "${workspaceFolder}/test-run",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
