@@ -38,9 +38,15 @@ void getDataset()
         }
         puts("");
     }
-    
-
     printf("Rows: %zu\n", dataset->length);
+
+    // Freeing up memory
+    for (size_t i = 0; i < dataset->length; i++)
+    {
+        ArrayList item = *(ArrayList*)arraylist_elementAt(dataset, i);
+        arraylist_destroy(item);
+    }
+    arraylist_destroy(dataset);
 }
 
 int main(void)
