@@ -44,8 +44,8 @@ red = [100, 0, 0]
 green = [0, 100, 0]
 blank = [0, 0, 0]
 
-acts = ["walking", "running", "jumping",
-        "stationary", "falling"  , "e"]  # Expected activities
+acts = ["walking", "running",
+        "stationary", "falling", "e"]  # Expected activities
 
 sense = SenseHat()
 atexit.register(sense.clear)
@@ -72,7 +72,7 @@ while True:
     f = open(file, "w", newline="")
     dataCSV = csv.writer(f)
 
-    labels = ["x", "y", "z", "p", "r", "y"]
+    labels = ["x", "y", "z"]
     dataCSV.writerow(labels)
 
     while run:
@@ -83,12 +83,7 @@ while True:
         y = data["y"]
         z = data["z"]
 
-        data = sense.get_orientation_radians()
-        p = data["pitch"]
-        r = data["roll"]
-        y = data["yaw"]
-
-        dataCSV.writerow([x, y, z, p, r, y])
+        dataCSV.writerow([x, y, z])
 
         for event in sense.stick.get_events():
             run = False if event.action == "pressed" and event.direction == "middle" else True
