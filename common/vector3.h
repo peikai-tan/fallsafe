@@ -1,5 +1,5 @@
-#if !defined(COMMON_VECTOR3)
-#define COMMON_VECTOR3
+#ifndef COMMON_VECTOR311
+#define COMMON_VECTOR311
 
 typedef struct vector3
 {
@@ -8,7 +8,7 @@ typedef struct vector3
     double z;
 } Vector3;
 
-const Vector3 vector3_zero;
+extern const Vector3 vector3_zero;
 
 Vector3 vector3_multiply(const Vector3 const *vector, double scaler);
 Vector3 vector3_divide(const Vector3 const *vector, double divider);
@@ -23,4 +23,4 @@ double vector3_distance(const Vector3 const *a, const Vector3 const *b);
 
 void vector3_print(const Vector3 const *vector);
 
-#endif // COMMON_VECTOR3
+#endif

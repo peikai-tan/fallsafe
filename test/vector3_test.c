@@ -9,8 +9,8 @@ int main(void)
     vector3_print(&vector3_zero);
 
     puts("Pseudo Random values");
-    Vector3 vector1 = { rand(), rand(), rand() };
-    Vector3 vector2 = { rand(), rand(), rand() };
+    Vector3 vector1 = {rand(), rand(), rand()};
+    Vector3 vector2 = {rand(), rand(), rand()};
     vector3_print(&vector1);
     vector3_print(&vector2);
 

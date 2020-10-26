@@ -55,7 +55,7 @@ void intTest()
         arraylist_push(intList, &i);
     }
 
-    char printbuffer[1];
+    char printbuffer[20];
     arraylist_print(intList, printbuffer, int_string);
 
     arraylist_destroy(intList);
