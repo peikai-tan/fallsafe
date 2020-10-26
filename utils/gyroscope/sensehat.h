@@ -116,17 +116,17 @@ int shInit(int iChannel, int * pfbfd);
 //
 void shShutdown(int * pfbfd, uint16_t * map);
 
-int shGetGyro(int *Gx, int *Gy, int *Gz);
+int shGetGyro(int * gyroRates);
 
 int shGetAccel(int *Ax, int *Ay, int *Az);
 
-int shGet2GAccel(float *Ax, float *Ay, float *Az);
+int shGet2GAccel(float * anglesArr);
 
-int shGet500DPSGyro(float *Gx, float *Gy, float *Gz, int * intStart);
+int shGet500DPSComplementary(float * CFAnglesArr, int * rateGArr, float * anglesArr, int * intStart);
 
 int mapLEDFrameBuffer(uint16_t **  map, int * pfbfd);
 
-void accelToAngle(float * angleX, float * angleY, float * accX, float * accY, float * accZ);
+void accelToAngle(float * accelAngles, float * accelRadians);
 
 unsigned char shReadJoystick(int * pfbfd);
 

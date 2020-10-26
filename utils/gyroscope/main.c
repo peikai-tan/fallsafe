@@ -11,8 +11,10 @@ int main(int argc, char *argv[])
 //	unsigned char isDown = 0;
 //  unsigned char dir = 0;
     Joystick joystick;
-  	float accel_x = 0, accel_y = 0, accel_z = 0;
-	float angleX = 0.0f, angleY = 0.0f;
+	float accelRadians[3] = {0.0f};
+	float accelAngles[2] = {0.0f};
+	int gyroRates[3] = {0};
+	float complementaryAngles[2] = {0.0f};
 	int startInt = mymillis();
 	struct timeval tvBegin, tvEnd, tvDiff;
 	gettimeofday(&tvBegin, NULL);
@@ -44,28 +46,21 @@ int main(int argc, char *argv[])
 
     while(1)
     {
-        //		isDown = shReadJoystick(&fbfd);
-        //		printf("Joystick vals: %02x\n", isDown);
-        //
-
-        if(shGet500DPSGyro(&accel_x, &accel_y, &accel_z, &startInt))
+        if(shGetGyro(gyroRates) && shGet2GAccel(accelRadians))
         {
-            printf("Gyro: X = %f, Y= %f, Z = %f \n", accel_x, accel_y, accel_z);
+            accelToAngle(accelAngles, accelRadians);
+			if(shGet500DPSComplementary(complementaryAngles, gyroRates, accelAngles, &startInt))
+					printf("Complementary Angles: x =  %f, y = %f \n", complementaryAngles[0], complementaryAngles[1]);
         }
-        //    if(shGet2GAccel(&accel_x, &accel_y, &accel_z))
-        //    {
-        //      printf("Accel: X = %f, Y = %f, Z = %f \n", accel_x, accel_y, accel_z);
-        //    }
+       //    printf("Map value: %x\n", fbfd);
 
-        //    printf("Map value: %x\n", fbfd);
+       //shSetPixel(3, 3, 0xF800, 1, mapHead, &fbfd);
 
-        //shSetPixel(3, 3, 0xF800, 1, mapHead, &fbfd);
-
-        readJoystick(&joystickFB, &joystick);
-        if(joystick.state == PRESSED)
-        {
-        printf("Joystick direction: %s\n", joystick.direction);
-    }
+       // readJoystick(&joystickFB, &joystick);
+       // if(joystick.state == PRESSED)
+       // {
+       // printf("Joystick direction: %s\n", joystick.direction);
+       // }
 
     //printf("ev code: %d\n", dir);
 //		sleep(1);
