@@ -65,7 +65,7 @@ class Listener():
             pass
 
 
-length = 60
+length = 30
 listener = Listener(my_username, IP, PORT, length)
 
 choices = ["walk", "stationary"]
