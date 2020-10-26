@@ -256,7 +256,54 @@ int shGet500DPSComplementary(float * CFAnglesArr, int * rateGArr, float * angles
 		return 0;
 }
 
+int shGet500DPSKalman(float * kalmanAngles, int * rateGArr, float * anglesArr, int * startInt, float * bias, float * XP, float * YP)
+{
+	float y, s = 0.0f;
+	float K_0, K_1 = 0.0f;
+	if(shGetGyro(rateGArr))
+	{
+		*startInt = mymillis();
+		kalmanAngles[0] += 0.02f * (((float) rateGArr[0] * G_GAIN) - bias[0]); 
+		XP[0] += -0.02f * (XP[1] + XP[2]) + Q_ANGLE * 0.02f;
+		XP[1] += -0.02f * XP[3];
+		XP[2] += -0.02f * XP[3];
+		XP[3] += +Q_GYRO * 0.02f;
+		y = anglesArr[0] - kalmanAngles[0];
+		s = XP[0] + R_ANGLE;
+		K_0 = XP[0] / s;
+		K_1 = XP[2] / s;
 
+		kalmanAngles[0] += K_0 * y;
+		bias[0] += K_1 * y;
+		XP[0] -= K_0 * XP[0];
+		XP[1] -= K_0 * XP[1];
+		XP[2] -= K_1 * XP[0];
+		XP[3] -= K_1 * XP[1];
+
+		kalmanAngles[1] += 0.02f * (((float) rateGArr[1] * G_GAIN) - bias[1]);
+		YP[0] += -0.02f * (YP[1] + YP[2]) + Q_ANGLE * 0.02f;
+		YP[1] += -0.02f * YP[3];
+		YP[2] += -0.02f * YP[3];
+		YP[3] += +Q_GYRO * 0.02f;
+		y = anglesArr[1] - kalmanAngles[1];
+		s = YP[0] + R_ANGLE;
+		K_0 = YP[0] / s;
+		K_1 = YP[2] / s;
+
+		kalmanAngles[1] += K_0 * y;
+		bias[1] += K_1 * y;
+		YP[0] -= K_0 * YP[0];
+		YP[1] -= K_0 * YP[1];
+		YP[2] -= K_1 * YP[0];
+		YP[3] -= K_1 * YP[1];
+		
+		while(mymillis() - (*startInt) < (0.02 * 1000))
+				usleep(100);
+		
+		return 1;
+	}
+	return 0;				
+}
 int shGetMagneto(int *Mx, int *My, int *Mz)
 {
 		unsigned char ucTemp[8];

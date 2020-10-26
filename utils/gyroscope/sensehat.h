@@ -59,7 +59,10 @@
 #define PI 3.141592f
 #define RAD_TO_DEG 57.29578f
 #define AA 0.97
-int mymillis();
+
+#define Q_ANGLE 0.01
+#define Q_GYRO 0.0003
+#define R_ANGLE 0.01
 
 #define ACCEL_ADDR 0x6a
 #define MAGN_ADDR 0x1c
@@ -89,6 +92,9 @@ typedef struct
     JoystickState state;
     char *status;
 } Joystick;
+
+int mymillis();
+
 //
 // Read the magnetometer values for x/y/z
 //
@@ -134,5 +140,6 @@ int initJoystick(int *fd);
 int readJoystick(int *fd, Joystick *joy);
 void checkJoystickDir(int evCode, Joystick *joy);
 void checkJoystickState(int evType, Joystick *joy);
+int shGet500DPSKalman(float * kalmanAngles, int * rateGArr, float * anglesArr, int * startInt, float * bias, float * XP, float * YP);
 
 #endif // _SENSEHAT_H_

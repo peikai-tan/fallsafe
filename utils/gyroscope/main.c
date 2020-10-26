@@ -19,6 +19,10 @@ int main(int argc, char *argv[])
 	struct timeval tvBegin, tvEnd, tvDiff;
 	gettimeofday(&tvBegin, NULL);
  	unsigned char bufSize = 0;
+    float XP[4] = {0.0f};
+	float YP[4] = {0.0f};
+	float kalmanAngles[2] = {0.0f};
+	float bias[2] = {0.0f}; 
 
 	if(shInit(1, &fbfd) == 0)
 	{
@@ -49,9 +53,15 @@ int main(int argc, char *argv[])
         if(shGetGyro(gyroRates) && shGet2GAccel(accelRadians))
         {
             accelToAngle(accelAngles, accelRadians);
-			if(shGet500DPSComplementary(complementaryAngles, gyroRates, accelAngles, &startInt))
-					printf("Complementary Angles: x =  %f, y = %f \n", complementaryAngles[0], complementaryAngles[1]);
-        }
+			//printf("Accel (rad) x = %f, y = %f, z = %f \n", accelRadians[0], accelRadians[1], accelRadians[2]);
+			//if(shGet500DPSComplementary(complementaryAngles, gyroRates, accelAngles, &startInt))
+			//		printf("Complementary Angles: x =  %f, y = %f \n", complementaryAngles[0], complementaryAngles[1]);
+        	if(shGet500DPSKalman(kalmanAngles, gyroRates, accelAngles, &startInt, bias, XP, YP))
+					printf("Kalman Angles: x = %f, y = %f \n", kalmanAngles[0], kalmanAngles[1]);
+
+		
+		
+		}
        //    printf("Map value: %x\n", fbfd);
 
        //shSetPixel(3, 3, 0xF800, 1, mapHead, &fbfd);
