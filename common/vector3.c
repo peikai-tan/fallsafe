@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
-#include "vector3.h"
+#include "./math.h"
+#include "./vector3.h"
 
 static const double kEpsilon = 0.00001;
 static const double kEpsilonNormalSqrt = 1e-15;
@@ -56,7 +57,7 @@ double vector3_angle(const Vector3 const *from, const Vector3 const *to)
         return 0;
     }
     double dot = vector3_dot(from, to) / denominator;
-    dot = dot < -1 ? -1 : dot > 1 ? 1 : dot;
+    dot = clamp(dot, -1, 1);
     return acos(dot) * 180.0 / 3.14159265358979323846;
 }
 

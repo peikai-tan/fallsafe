@@ -1,5 +1,5 @@
-#ifndef COMMON_VECTOR311
-#define COMMON_VECTOR311
+#if !defined(COMMON_VECTOR)
+#define COMMON_VECTOR
 
 typedef struct vector3
 {

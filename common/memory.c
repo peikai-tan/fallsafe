@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "memoryUtils.h"
+#include "./memory.h"
 
 // https://stackoverflow.com/questions/8166502/c-fastest-method-to-swap-two-memory-blocks-of-equal-size
 #define SWAP_USE_WORD

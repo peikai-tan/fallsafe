@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <limits.h>
 
-#include "arraylist.h"
-#include "memoryUtils.h"
+#include "./arraylist.h"
+#include "./memory.h"
 
 #define DEBUG
 
