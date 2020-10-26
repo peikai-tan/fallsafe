@@ -44,11 +44,11 @@ def send(client):
             z = str(acc["z"])[:10]
 
             ori = sense.get_orientation_radians()
-            p = str(ori["pitch"])[:10]
-            r = str(ori["roll"])[:10]
-            y = str(ori["yaw"])[:10]
+            pitch = str(ori["pitch"])[:10]
+            roll = str(ori["roll"])[:10]
+            yaw = str(ori["yaw"])[:10]
 
-            message = x+y+z+p+r+y
+            message = x+y+z+pitch+roll+yaw
             client.send(message.encode("utf-8"))
         except:
             break
