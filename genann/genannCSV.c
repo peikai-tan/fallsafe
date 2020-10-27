@@ -32,57 +32,37 @@ void getOutput(double **label, double i)
 
 int main(void)
 {
-    float accuracy = 0;
-    long bestTime;
-    float bestAccuracy = 0;
-    int i = 0;
+    srand(time(0)); //1603803954 0.899972
 
-    for (; accuracy < 0.9; i++)
+    genann *ann = genann_init(dataSize, 5, 50, 2);
+
+    char buf[1300]; // Slightly oversized just in case.
+
+    double *label;
+    double value;
+    double *copy;
+
+    int runs = 0;
+    float correctCount = 0.0f;
+
+    FILE *ptr = fopen("dataFiles/trainingFiles/combined.csv", "r");
+    for (; fgets(buf, 1300, ptr) != NULL; runs++)
     {
-        long t = time(0);
-        srand(t); //1603803954 0.899972
+        ArrayList row = getValues(buf);
+        arraylist_pop(row, &value);
+        getOutput(&label, value);
+        genann_train(ann, row->_array, label, 0.1);
 
-        genann *ann = genann_init(dataSize, 5, 50, 2);
+        const double *output = genann_run(ann, row->_array);
 
-        char buf[1300]; // Slightly oversized just in case.
+        if (output[(int)value] > output[((int)value + 1) % 2])
+            correctCount++;
 
-        double *label;
-        double value;
-        double *copy;
-
-        int runs = 0;
-        float correctCount = 0.0f;
-
-        FILE *ptr = fopen("dataFiles/trainingFiles/combined.csv", "r");
-        for (; fgets(buf, 1300, ptr) != NULL; runs++)
-        {
-            ArrayList row = getValues(buf);
-            arraylist_pop(row, &value);
-            getOutput(&label, value);
-            genann_train(ann, row->_array, label, 0.1);
-
-            const double *output = genann_run(ann, row->_array);
-
-            if (output[(int)value] > output[((int)value + 1) % 2])
-                correctCount++;
-
-            // printf("%lf\n", value);
-            // printf("%lf, %lf\n", genann_run(ann, row->_array)[0], genann_run(ann, row->_array)[1]);
-            free(row);
-        }
-        accuracy = correctCount / runs;
-
-        if (accuracy > bestAccuracy)
-        {
-            bestAccuracy = accuracy;
-            bestTime = t;
-        }
-
-        printf("Best:\t\t%ld\n", bestTime);
-        printf("\t\t%lf\n", bestAccuracy);
-        printf("Runs:\t\t%d\n", i + 1);
-
-        genann_free(ann);
+        // printf("%lf\n", value);
+        // printf("%lf, %lf\n", genann_run(ann, row->_array)[0], genann_run(ann, row->_array)[1]);
+        free(row);
     }
+
+    genann_free(ann);
     return 0;
 }
