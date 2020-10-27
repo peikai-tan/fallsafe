@@ -19,16 +19,17 @@ ArrayList getRow()
 void getDataset()
 {
     ArrayList dataset = arraylist_new(double *, 0);
-    ArrayList datasetDisposable = arraylist_new(ArrayList, 0);
     // Generate <ROWS> amounts of rows
     for (size_t i = 0; i < ROWS; i++)
     {
         ArrayList row = getRow();
         arraylist_push(dataset, &row->_array);
-        arraylist_push(datasetDisposable, &row);
+        free(row); // Disposing the list container since we only use it's internal array
     }
 
     double **double2d = (double **)dataset->_array;
+
+    // Printing array content
     for (size_t i = 0; i < dataset->length; i++)
     {
         printf("Row[%zu]: ", i);
@@ -44,11 +45,9 @@ void getDataset()
     // Freeing up memory
     for (size_t i = 0; i < dataset->length; i++)
     {
-        ArrayList item = *(ArrayList *)arraylist_elementAt(datasetDisposable, i);        
+        ArrayList item = *(ArrayList *)arraylist_elementAt(dataset, i);
         arraylist_destroy(item);
     }
-    arraylist_destroy(datasetDisposable);
-    dataset->_array = NULL;
     arraylist_destroy(dataset);
 }
 
