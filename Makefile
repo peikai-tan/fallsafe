@@ -19,6 +19,9 @@ test-vector3: file=./test/vector3_test.c
 test-vector3: debug-common
 	./test-run
 
+genannTest:
+	gcc -o genannTest ./genann/genann.c ./genann/genannCSV.c ./common/arraylist.c -lm -Wall
+
 O-common:
 	gcc -O3 $(CFLAGS) $(LIBS) $(file) ./common/*.c -o test-O
 
