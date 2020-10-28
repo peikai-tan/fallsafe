@@ -3,7 +3,7 @@
 #include <time.h>
 #include "genann.h"
 
-#define dataSize 90
+#define dataSize 15
 
 #include "../common/arraylist.h"
 
@@ -37,24 +37,28 @@ int main(void)
     float bestAccuracy = 0;
     int i = 0;
 
+    int bufferSize = dataSize * 15 + 11;
+    //Length of data * (possible sign, 2 integer place, decimal point, 10 decimal place, comma) + (integer place, decimal point, 10 decimal place)
+
     for (; accuracy < 0.9; i++)
     {
         long t = time(0);
-        srand(t); //1603803954 0.899972
+        srand(t);
+        //1603803954 0.899972 (180)
+        //1603856925 0.798374 (15)
 
         genann *ann = genann_init(dataSize, 5, 50, 2);
 
-        char buf[1300]; // Slightly oversized just in case.
+        char buf[bufferSize]; // Slightly oversized just in case.
 
         double *label;
         double value;
-        double *copy;
 
         int runs = 0;
         float correctCount = 0.0f;
 
         FILE *ptr = fopen("dataFiles/trainingFiles/combined.csv", "r");
-        for (; fgets(buf, 1300, ptr) != NULL; runs++)
+        for (; fgets(buf, bufferSize, ptr) != NULL; runs++)
         {
             ArrayList row = getValues(buf);
             arraylist_pop(row, &value);
@@ -77,7 +81,7 @@ int main(void)
             bestAccuracy = accuracy;
             bestTime = t;
         }
-
+        system("clear");
         printf("Best:\t\t%ld\n", bestTime);
         printf("\t\t%lf\n", bestAccuracy);
         printf("Runs:\t\t%d\n", i + 1);

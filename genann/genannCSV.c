@@ -3,7 +3,10 @@
 #include <time.h>
 #include "genann.h"
 
-#define dataSize 90
+#define dataSize 15
+
+#define DEBUG 1
+#define PRINT 0
 
 #include "../common/arraylist.h"
 
@@ -32,7 +35,8 @@ void getOutput(double **label, double i)
 
 int main(void)
 {
-    srand(time(0)); //1603803954 0.899972
+    // srand(time(0)); //1603803954 0.899972
+    srand(1603803954);
 
     genann *ann = genann_init(dataSize, 5, 50, 2);
 
@@ -40,7 +44,6 @@ int main(void)
 
     double *label;
     double value;
-    double *copy;
 
     int runs = 0;
     float correctCount = 0.0f;
@@ -51,17 +54,23 @@ int main(void)
         ArrayList row = getValues(buf);
         arraylist_pop(row, &value);
         getOutput(&label, value);
-        genann_train(ann, row->_array, label, 0.1);
+        genann_train(ann, row->_array, label, 1);
 
         const double *output = genann_run(ann, row->_array);
 
         if (output[(int)value] > output[((int)value + 1) % 2])
             correctCount++;
 
-        // printf("%lf\n", value);
-        // printf("%lf, %lf\n", genann_run(ann, row->_array)[0], genann_run(ann, row->_array)[1]);
+#if PRINT
+        printf("%lf\n", value);
+        printf("%lf, %lf\n", genann_run(ann, row->_array)[0], genann_run(ann, row->_array)[1]);
+#endif
         free(row);
     }
+
+#if DEBUG
+    printf("Accuracy: %lf%\n", correctCount / runs);
+#endif
 
     genann_free(ann);
     return 0;
