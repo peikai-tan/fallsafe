@@ -7,7 +7,7 @@
 #include "arraylist.h"
 #include "memoryUtils.h"
 
-#define DEBUG
+// #define DEBUG
 
 #define list_position(list, index) \
     (((list->_iterator_offset + index) % list->_capacity) * list->_element_size)

@@ -19,6 +19,16 @@ test-vector3: file=./test/vector3_test.c
 test-vector3: debug-common
 	./test-run
 
+genannCSV: 
+	gcc $(CFLAGS_STRICT) ./genann/genannCSV.c ./genann/genann.c ./common/arraylist.c -lm -o ML
+	./ML
+	rm ML
+
+accuracyTesting: 
+	gcc $(CFLAGS_STRICT) ./genann/pursuitOfAccuracy.c ./genann/genann.c ./common/arraylist.c -lm -o ML
+	./ML
+	rm ML
+
 O-common:
 	gcc -O3 $(CFLAGS) $(LIBS) $(file) ./common/*.c -o test-O
 
