@@ -9,6 +9,7 @@
 #define PRINT 0
 
 #include "../common/arraylist.h"
+#include "../utils/timer/timer.h"
 
 ArrayList getValues(char buf[])
 {
@@ -49,6 +50,7 @@ int main(void)
     float correctCount = 0.0f;
 
     FILE *ptr = fopen("dataFiles/trainingFiles/combined.csv", "r");
+    startTimer();
     for (; fgets(buf, 1300, ptr) != NULL; runs++)
     {
         ArrayList row = getValues(buf);
@@ -67,6 +69,8 @@ int main(void)
 #endif
         free(row);
     }
+    endTimer();
+    printf("%f\n", calculateTimer());
 
 #if DEBUG
     printf("Accuracy: %lf%\n", correctCount / runs);

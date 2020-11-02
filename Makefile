@@ -20,7 +20,7 @@ test-vector3: debug-common
 	./test-run
 
 genannCSV: 
-	gcc $(CFLAGS_STRICT) ./genann/genannCSV.c ./genann/genann.c ./common/arraylist.c -lm -o ML
+	gcc $(CFLAGS_STRICT) ./genann/genannCSV.c ./genann/genann.c ./utils/timer/timer.c ./common/arraylist.c -lm -o ML
 	./ML
 	rm ML
 
