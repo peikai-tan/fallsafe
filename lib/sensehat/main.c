@@ -8,21 +8,23 @@ int main(int argc, char *argv[])
     int joystickFB = 0;
 	uint16_t * map = 0;
 	uint16_t * mapHead = 0;
-//	unsigned char isDown = 0;
-//  unsigned char dir = 0;
+	//unsigned char isDown = 0;
+	//unsigned char dir = 0;
     Joystick joystick;
-	float accelRadians[3] = {0.0f};
-	float accelAngles[2] = {0.0f};
-	int gyroRates[3] = {0};
-	float complementaryAngles[2] = {0.0f};
+	Vector3 accels = {0.0, 0.0 , 0.0};
+	//float accelAngles[2] = {0.0f};
+	//int gyroRates[3] = {0};
+	// Uncomment for Complementary Angles
+	//float complementaryAngles[2] = {0.0f};
 	int startInt = mymillis();
 	struct timeval tvBegin, tvEnd, tvDiff;
 	gettimeofday(&tvBegin, NULL);
  	unsigned char bufSize = 0;
-    float XP[4] = {0.0f};
-	float YP[4] = {0.0f};
-	float kalmanAngles[2] = {0.0f};
-	float bias[2] = {0.0f}; 
+	// Uncomment for Kalman
+    //float XP[4] = {0.0f};
+	//float YP[4] = {0.0f};
+	//float kalmanAngles[2] = {0.0f};
+	//float bias[2] = {0.0f}; 
 
 	if(shInit(1, &fbfd) == 0)
 	{
@@ -50,18 +52,24 @@ int main(int argc, char *argv[])
 
     while(1)
     {
-        if(shGetGyro(gyroRates) && shGet2GAccel(accelRadians))
-        {
-            accelToAngle(accelAngles, accelRadians);
+
+		if(shGet2GAccel(&accels))
+						{
+							vector3_print(&accels);  
+						}
+
+        //if(shGetGyro(gyroRates) && shGet2GAccel(accelRadians))
+        //{
+        //    accelToAngle(accelAngles, accelRadians);
 			//printf("Accel (rad) x = %f, y = %f, z = %f \n", accelRadians[0], accelRadians[1], accelRadians[2]);
 			//if(shGet500DPSComplementary(complementaryAngles, gyroRates, accelAngles, &startInt))
 			//		printf("Complementary Angles: x =  %f, y = %f \n", complementaryAngles[0], complementaryAngles[1]);
-        	if(shGet500DPSKalman(kalmanAngles, gyroRates, accelAngles, &startInt, bias, XP, YP))
-					printf("Kalman Angles: x = %f, y = %f \n", kalmanAngles[0], kalmanAngles[1]);
+        //	if(shGet500DPSKalman(kalmanAngles, gyroRates, accelAngles, &startInt, bias, XP, YP))
+		//			printf("Kalman Angles: x = %f, y = %f \n", kalmanAngles[0], kalmanAngles[1]);
 
 		
 		
-		}
+		//}
        //    printf("Map value: %x\n", fbfd);
 
        //shSetPixel(3, 3, 0xF800, 1, mapHead, &fbfd);

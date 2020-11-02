@@ -210,17 +210,17 @@ int shGetAccel(int *Ax, int *Ay, int *Az)
 		return 0;
 } /* shGetAccel() */
 
-int shGet2GAccel(float * anglesArr)
+int shGet2GAccel(Vector3 * anglesArr)
 {
-		int x = anglesArr[0];
-		int y = anglesArr[1];
-		int z = anglesArr[2];
+		int x = anglesArr->x;
+		int y = anglesArr->y;
+		int z = anglesArr->z;
 
 		if (shGetAccel(&x, &y, &z))
 		{
-				anglesArr[0] = (x * twoG_LSB) / 1000;
-				anglesArr[1] = (y * twoG_LSB) / 1000;
-				anglesArr[2] = (z * twoG_LSB) / 1000;
+				anglesArr->x = (double) (x * twoG_LSB) / 1000;
+				anglesArr->y = (double) (y * twoG_LSB) / 1000;
+				anglesArr->z = (double) (z * twoG_LSB) / 1000;
 				return 1;
 		}
 		return 0;

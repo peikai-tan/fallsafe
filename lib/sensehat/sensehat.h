@@ -42,6 +42,8 @@
 #include <linux/input.h>
 #include <i2c/smbus.h>
 #include <errno.h>
+#include "../../common/vector3.h"
+
 
 // bit definitions for joystick
 #define JOY_DOWN 1
@@ -126,7 +128,7 @@ int shGetGyro(int * gyroRates);
 
 int shGetAccel(int *Ax, int *Ay, int *Az);
 
-int shGet2GAccel(float * anglesArr);
+int shGet2GAccel(Vector3 * anglesArr);
 
 int shGet500DPSComplementary(float * CFAnglesArr, int * rateGArr, float * anglesArr, int * intStart);
 
