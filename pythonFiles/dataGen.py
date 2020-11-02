@@ -3,6 +3,8 @@ import math
 import time
 import csv
 import atexit
+import getpass
+import socket
 
 
 def toMessWithChalk(angle):
@@ -42,8 +44,8 @@ red = [100, 0, 0]
 green = [0, 100, 0]
 blank = [0, 0, 0]
 
-acts = ["walking", "running", "jumping",
-        "stationary", "e"]  # Expected activities
+acts = ["walking", "running", "stationary",
+        "falling", "jumping", "e"]  # Expected activities
 
 sense = SenseHat()
 atexit.register(sense.clear)
@@ -65,12 +67,12 @@ while True:
                 sense.show_letter(acts[c][0], green)
 
     # Creating csv file for logging of data
-    file = "./dataFiles/" + acts[c] + "/" + acts[c] + \
-        "-" + time.strftime("%d-%m-%Y-%H:%M:%S") + ".csv"
+    file = "./dataFiles/" + acts[c] + "/" + socket.gethostname() + "-" + acts[c] + \
+        "-" + time.strftime("%d-%m-%Y--%H-%M-%S") + ".csv"
     f = open(file, "w", newline="")
     dataCSV = csv.writer(f)
 
-    labels = ["x", "y", "z", "mag"]
+    labels = ["x", "y", "z"]
     dataCSV.writerow(labels)
 
     while run:
@@ -81,12 +83,10 @@ while True:
         y = data["y"]
         z = data["z"]
 
-        mag = math.sqrt(x * x + y * y + z * z)
-        dataCSV.writerow([x, y, z, mag])
+        dataCSV.writerow([x, y, z])
 
         for event in sense.stick.get_events():
             run = False if event.action == "pressed" and event.direction == "middle" else True
-        time.sleep(0.1)
 
     sense.set_pixels([[0, 0, 0] for x in range(64)])
     f.close()
