@@ -38,4 +38,3 @@ gcc flags
 ```
 -std=c99 -lm -Wall -Wextra -Werror -pedantic
 ```
-

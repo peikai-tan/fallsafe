@@ -28,6 +28,9 @@ accuracyTesting:
 	gcc $(CFLAGS_STRICT) ./genann/pursuitOfAccuracy.c ./genann/genann.c ./common/arraylist.c -lm -o ML
 	./ML
 	rm ML
+test-array2d: file=./test/array2d_test.c
+test-array2d: debug-common
+	./test-run
 
 O-common:
 	gcc -O3 $(CFLAGS) $(LIBS) $(file) ./common/*.c -o test-O

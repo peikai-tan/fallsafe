@@ -1,7 +1,7 @@
 #if !defined(COMMON_QUEUE)
 #define COMMON_QUEUE
 
-#include "arraylist.h"
+#include "./arraylist.h"
 
 typedef struct queue
 {

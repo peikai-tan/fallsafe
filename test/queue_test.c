@@ -3,7 +3,7 @@
 
 #include "../common/arraylist.h"
 #include "../common/queue.h"
-#include "../common/memoryUtils.h"
+#include "../common/memory.h"
 
 #define TEST_SIZE 0xF
 

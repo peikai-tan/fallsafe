@@ -15,7 +15,7 @@ typedef struct arraylist
 /**
  * Generic arraylist constructor wrapper to conveniently take in the actual type rather than sizeof the type
  * Example if in C#: List<int> list = new List<int>(0);
- * Equivalent here: ArrayList* list = arraylist_new(int, 0);
+ * Equivalent here: ArrayList list = arraylist_new(int, 0);
 */
 #define arraylist_new(type, capacity) \
     _arraylist_new(capacity, sizeof(type))
