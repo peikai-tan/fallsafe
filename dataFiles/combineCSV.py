@@ -1,6 +1,6 @@
 import os
 import csv
-from matplotlib import pyplot as plt
+import numpy as np
 
 folders = ["running", "walking", "stationary", "jumping", "falling"]
 
@@ -10,12 +10,14 @@ os.chdir(os.getcwd() + "/dataFiles/")
 
 files = os.listdir(folders[option])
 
-
+dataset = []
 for f in files:
+    print(f)
     f = csv.reader(open(folders[option] + "/" + f, "r"))
     next(f)
 
-    dataset = [[float(dat) for dat in row] for row in f]
+    for row in f:
+        dataset.append([float(dat) for dat in row])
 
-    plt.plot(range(len(dataset)), dataset)
-    plt.show()
+
+np.savetxt(folders[option] + "/combined-" + folders[option] + ".csv", dataset, delimiter=",", fmt="%02.10f")
