@@ -19,6 +19,15 @@ test-vector3: file=./test/vector3_test.c
 test-vector3: debug-common
 	./test-run
 
+genannCSV: 
+	gcc $(CFLAGS_STRICT) ./genann/genannCSV.c ./genann/genann.c ./utils/timer/timer.c ./common/arraylist.c -lm -o ML
+	./ML
+	rm ML
+
+accuracyTesting: 
+	gcc $(CFLAGS_STRICT) ./genann/pursuitOfAccuracy.c ./genann/genann.c ./common/arraylist.c -lm -o ML
+	./ML
+	rm ML
 test-array2d: file=./test/array2d_test.c
 test-array2d: debug-common
 	./test-run
