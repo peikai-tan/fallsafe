@@ -172,6 +172,24 @@ int shSetPixel(int x, int y, uint16_t color, int bUpdate, uint16_t *map_headptr,
 		return 0;
 } /* shSetPixel() */
 
+int drawActivity(ActivityState state, uint16_t * map_headptr, int * pfbfd)
+{
+  int i = 0;
+  if(state == FALLING)
+  {
+    for(i = 1; i < 7; ++i)
+      shSetPixel(2, i, RED, 1, map_headptr, pfbfd);
+    for(i = 3; i < 6; ++i)
+      shSetPixel(i, 1, RED, 1, map_headptr, pfbfd);
+    for(i = 3; i < 6; ++i)
+      shSetPixel(i, 3, RED, 1, map_headptr, pfbfd);
+    return 1; 
+  }
+  return 0;
+}
+
+
+
 int setMap(uint16_t color, uint16_t *map, int *pfbfd)
 {
 		if (*pfbfd >= 0)

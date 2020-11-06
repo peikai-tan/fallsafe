@@ -70,6 +70,8 @@
 #define MAGN_ADDR 0x1c
 #define JOY_ADDR 0xf2
 
+#define RED 0xF800
+
 // Joystick enum based on event codes
 typedef enum
 {
@@ -87,6 +89,16 @@ typedef enum
     HOLD = 2
 } JoystickState;
 
+typedef enum
+{
+  FALLING = 0,
+  WALKING = 1,
+  RUNNING = 2,
+  JUMPING = 3,
+  STATIONARY = 4
+
+} ActivityState;
+
 typedef struct
 {
     JoystickDir dir;
@@ -101,7 +113,6 @@ int mymillis();
 // Read the magnetometer values for x/y/z
 //
 int shGetMagneto(int *Mx, int *My, int *Mz);
-
 //
 // Set the pixel the given color. The display will flicker
 // if it's updated for each pixel change, so it's best
@@ -110,34 +121,24 @@ int shGetMagneto(int *Mx, int *My, int *Mz);
 // format and the valid range of x/y is 0-7
 //
 int shSetPixel(int x, int y, uint16_t color, int bUpdate, uint16_t * map_headptr, int * pfbfd);
-
+int drawActivity(ActivityState state, uint16_t * map_headptr, int * pfbfd); 
 int setMap(uint16_t color, uint16_t * map, int * pfbfd);
-
 //
 // Initialize the sensors on the Sense Hat
 // iChannel = I2C channel number (0/1/2)
 //
 int shInit(int iChannel, int * pfbfd);
-
 //
 // Frees resources and closes handles
 //
 void shShutdown(int * pfbfd, uint16_t * map);
-
 int shGetGyro(int * gyroRates);
-
 int shGetAccel(int *Ax, int *Ay, int *Az);
-
 int shGet2GAccel(Vector3 * anglesArr);
-
 int shGet500DPSComplementary(float * CFAnglesArr, int * rateGArr, float * anglesArr, int * intStart);
-
 int mapLEDFrameBuffer(uint16_t **  map, int * pfbfd);
-
 void accelToAngle(float * accelAngles, float * accelRadians);
-
 unsigned char shReadJoystick(int * pfbfd);
-
 int initJoystick(int *fd);
 int readJoystick(int *fd, Joystick *joy);
 void checkJoystickDir(int evCode, Joystick *joy);
