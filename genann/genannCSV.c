@@ -9,6 +9,7 @@
 #define PRINT 0
 
 #include "../common/arraylist.h"
+#include "../utils/timer/timer.h"
 
 ArrayList getValues(char buf[])
 {
@@ -92,6 +93,8 @@ int main(void)
 #endif
         free(row);
     }
+    endTimer();
+    printf("%f\n", calculateTimer());
 
 #if DEBUG
     printf("Accuracy: %lf%\nRuns: %d\n\n", correctCount / runs, runs);
