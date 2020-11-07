@@ -3,7 +3,7 @@
 #include <time.h>
 #include "genann.h"
 
-#define dataSize 15
+#define dataSize 90
 
 #define DEBUG 1
 #define PRINT 0
@@ -33,14 +33,31 @@ void getOutput(double **label, double i)
     *label = r;
 }
 
+int prediction(const double *output)
+{
+    int maxIndex = 0;
+    double biggest = 0;
+    for (int i = 0; i < 5; i++)
+        if (output[i] > biggest)
+        {
+            maxIndex = i;
+            biggest = output[i];
+        }
+
+    return maxIndex;
+}
+
 int main(void)
 {
     // srand(time(0)); //1603803954 0.899972
-    srand(1603803954);
+    srand(1604396818);
+    // Highest for fallClassifier = 1604397616 0.790514
 
-    genann *ann = genann_init(dataSize, 5, 50, 2);
+    int bufferSize = dataSize * 15 + 12;
 
-    char buf[1300]; // Slightly oversized just in case.
+    genann *ann = genann_init(dataSize, 5, 100, 2);
+
+    char buf[bufferSize]; // Slightly oversized just in case.
 
     double *label;
     double value;
@@ -48,18 +65,26 @@ int main(void)
     int runs = 0;
     float correctCount = 0.0f;
 
-    FILE *ptr = fopen("dataFiles/trainingFiles/combined.csv", "r");
-    for (; fgets(buf, 1300, ptr) != NULL; runs++)
+    FILE *ptr = fopen("dataFiles/trainingFiles/fallClassifier.csv", "r");
+    for (; fgets(buf, bufferSize, ptr) != NULL; runs++)
     {
         ArrayList row = getValues(buf);
         arraylist_pop(row, &value);
         getOutput(&label, value);
-        genann_train(ann, row->_array, label, 1);
+        genann_train(ann, row->_array, label, 0.1);
 
         const double *output = genann_run(ann, row->_array);
 
-        if (output[(int)value] > output[((int)value + 1) % 2])
+        // printf("Prediction: %d\n", prediction(output));
+        // printf("Actual: %lf\n", value);
+
+        if (prediction(output) == (int)value)
             correctCount++;
+            // else
+            // {
+            //     printf("Run: %d, %d, %d\n", runs, prediction(output), (int)value);
+            //     exit(0);
+            // }
 
 #if PRINT
         printf("%lf\n", value);
@@ -69,7 +94,7 @@ int main(void)
     }
 
 #if DEBUG
-    printf("Accuracy: %lf%\n", correctCount / runs);
+    printf("Accuracy: %lf%\nRuns: %d\n\n", correctCount / runs, runs);
 #endif
 
     genann_free(ann);
