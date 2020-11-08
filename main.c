@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdbool.h>
+#include <wiringPi.h>
 
 /* Psuedo code:
  *
@@ -11,8 +13,17 @@
  * Else, continue running
  */
 
-int main(int agc, char** argv)
+static bool continueProgram = true;
+
+int main(int agc, char **argv)
 {
+    wiringPiSetupSys();
+
+    while (continueProgram)
+    {
+        delay(1000);
+    }
+
     printf("Program finished\n");
     return 0;
 }
