@@ -1,8 +1,8 @@
 .PHONY: debug-common debug-arraylist O-common debug-main
 
-CFLAGS=-std=c99 -lm -Wextra -pedantic
-CFLAGS_STRICT=-std=c99 -lm -Wextra -Werror -pedantic
-LIBS=-lpthread -lm
+CFLAGS=-std=c99 -Wextra -pedantic
+CFLAGS_STRICT=-std=c99 -Wextra -Werror -pedantic
+LIBS=-lm -lpthread
 
 debug-common:
 	gcc -g $(CFLAGS) $(LIBS) $(file) ./common/*.c -o ./test-run
@@ -27,4 +27,7 @@ O-common:
 	gcc -O3 $(CFLAGS) $(LIBS) $(file) ./common/*.c -o test-O
 
 debug-main:
-	gcc -g $(CFLAGS) $(LIBS) ./common/*.c ./utils/*.c main.c -o main
+	gcc -g $(CFLAGS) $(LIBS) -lrt -lwiringPi ./common/*.c ./utils/*.c main.c -o main
+
+test-main: debug-main
+	./main
