@@ -71,7 +71,10 @@
 #define JOY_ADDR 0xf2
 
 #define RED 0xF800
-
+#define GREEN 0x07E0
+#define PURPLE 0x780F
+#define ORANGE 0xFD20
+#define OLIVE 0x7BE0
 // Joystick enum based on event codes
 typedef enum
 {

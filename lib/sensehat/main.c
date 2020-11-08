@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 
   while(1)
   {
-    drawActivity(FALLING, mapHead, &fbfd);
+    drawActivity(STATIONARY, mapHead, &fbfd);
     sleep(1);
     setMap(0x0000, map, &fbfd);
     sleep(1);

@@ -186,8 +186,57 @@ int drawActivity(ActivityState state, uint16_t *map_headptr, int *pfbfd)
 		for (i = 3; i < 6; ++i)
 			shSetPixel(i, 3, RED, 1, map_headptr, pfbfd);
 		return 1;
-	default:
-		return 1;
+    case WALKING:
+        for(i=1; i<7; ++i)
+        {
+          shSetPixel(1,i, GREEN, 1, map_headptr, pfbfd);
+          shSetPixel(5,i, GREEN, 1, map_headptr, pfbfd);
+        }
+        shSetPixel(2,5, GREEN, 1, map_headptr, pfbfd);
+        shSetPixel(3,4, GREEN, 1, map_headptr, pfbfd);
+        shSetPixel(3,3, GREEN, 1, map_headptr, pfbfd);
+        shSetPixel(4,5, GREEN, 1, map_headptr, pfbfd);
+        return 1;
+    case RUNNING:
+        for(i = 1; i < 8; ++i)
+        {
+          shSetPixel(1,i,PURPLE,1, map_headptr, pfbfd);
+          if(i == 2 || i == 3 || i == 7)
+            shSetPixel(5, i, PURPLE, 1, map_headptr, pfbfd);
+        }
+        for(i = 2; i < 5; ++i)
+        {
+          shSetPixel(i, 1, PURPLE, 1, map_headptr, pfbfd);
+          shSetPixel(i, 4, PURPLE, 1, map_headptr, pfbfd);
+        }
+        shSetPixel(3, 5, PURPLE, 1, map_headptr, pfbfd);
+        shSetPixel(4, 6, PURPLE, 1, map_headptr, pfbfd);
+	    return 1;
+    case JUMPING:
+        for(i = 3; i < 6; ++i)
+          shSetPixel(i, 1, ORANGE, 1, map_headptr, pfbfd);
+        for(i = 2; i < 7; ++i)
+          shSetPixel(4, i, ORANGE, 1, map_headptr, pfbfd);
+        shSetPixel(1, 6, ORANGE, 1, map_headptr, pfbfd);
+        shSetPixel(2, 7, ORANGE, 1, map_headptr, pfbfd);
+        shSetPixel(3, 7, ORANGE, 1, map_headptr, pfbfd);
+        return 1;
+    case STATIONARY:
+        for(i = 2; i < 5; ++i)
+        {
+          shSetPixel(i, 1, OLIVE, 1, map_headptr, pfbfd);
+          shSetPixel(i, 4, OLIVE, 1, map_headptr, pfbfd);
+          shSetPixel(i, 7, OLIVE, 1, map_headptr, pfbfd);
+        } 
+        shSetPixel(5, 1, OLIVE, 1, map_headptr, pfbfd);
+        shSetPixel(1, 2, OLIVE, 1, map_headptr, pfbfd);
+        shSetPixel(1, 3, OLIVE, 1, map_headptr, pfbfd);
+        shSetPixel(5, 5, OLIVE, 1, map_headptr, pfbfd);
+        shSetPixel(5, 6, OLIVE, 1, map_headptr, pfbfd);
+        shSetPixel(1, 7, OLIVE, 1, map_headptr, pfbfd);
+        return 1;
+    default:
+		return 0;
 	}
 }
 
