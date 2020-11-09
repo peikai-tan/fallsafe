@@ -16,9 +16,9 @@ typedef struct classifier
     genann *aClassifier;
 } * Classifier;
 
-const Classifier classifier;
+Classifier classifier_new();
+void classifier_destroy(Classifier);
+int prediction(const double *);
+int classifier_predict(Classifier, double *);
 
-Classifier predict();
-// Classifier vector3_divide(const Vector3 const *vector, double divider);
-
-#endif // COMMON_VECTOR3
+#endif // CLASSIFIER
