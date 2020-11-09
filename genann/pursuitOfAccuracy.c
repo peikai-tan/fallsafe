@@ -12,6 +12,8 @@
 // #define file "dataFiles/trainingFiles/fallClassifier.csv"
 #define file "dataFiles/trainingFiles/activityClassifier.csv"
 
+#define savedModel "dataFiles/savedModel.ann"
+
 #include "../common/arraylist.h"
 
 ArrayList getValues(char buf[])
@@ -104,7 +106,7 @@ int main(void)
         //1604897173 0.755333 (2, 20)
 
         // Activity (PI)
-        // 1604899635 0.509505 (2,20)
+        // 1604899736 0.555217 (2,20)
 
         genann *ann = genann_init(dataSize, hiddenLayers, nPerLayer, outputSize);
 
@@ -152,6 +154,9 @@ int main(void)
         {
             bestAccuracy = accuracy;
             bestTime = t;
+
+            // Saving Model
+            genann_write(ann, fopen(savedModel, "w"));
         }
 
         system("clear");
