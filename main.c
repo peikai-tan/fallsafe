@@ -60,7 +60,7 @@ static ActivityState process_data(ArrayList accelero_datachunk)
     return STATIONARY;
 }
 
-static void send_thingsboard(Vector3 data)
+static void send_thingsboard(Vector3 data, double time_ms)
 {
     // Send data to thingsboard
 }
@@ -71,7 +71,7 @@ static void perform_task(const double *actual_interval, const double *delta_time
     // Gather the sensor data at current moment instant
     Vector3 acceleroData = gather_data(*actual_interval, *unix_time_ms);
 
-    send_thingsboard(acceleroData);
+    send_thingsboard(acceleroData, *unix_time_ms);
     // Check if queue is at the limit
     if (acceleroDataset->length == queueLimit)
     {
@@ -131,7 +131,7 @@ static double get_unixtime_ms()
 }
 
 /**
- * Gets high previous arbitary time in milliseconds
+ * Gets high precision arbitary time in milliseconds
 */
 static double get_monotonicclock_ms(void)
 {
@@ -155,7 +155,7 @@ int main(int agc, char **argv)
     double currentTime;
     double deltaTime;
 
-    acceleroDataset = queue_new(Vector3, 125);
+    acceleroDataset = queue_new(Vector3, queueLimit * 1.25);
 
     int joystickFB = 0;
 
@@ -167,17 +167,17 @@ int main(int agc, char **argv)
     // Set up sensehat sensors
     if (shInit(1, &senseHatfbfd) == 0)
     {
-        printf("Unable to open sense, is it connected?\n");
+        fprintf(stderr, "Unable to open sense, is it connected?\n");
         return -1;
     }
     if (mapLEDFrameBuffer(&sensehatLEDMap, &senseHatfbfd) == 0)
     {
-        printf("Unable to map LED to Frame Buffer. \n");
+        fprintf(stderr, "Unable to map LED to Frame Buffer. \n");
         return -1;
     }
     if (initJoystick(&joystickFB) == -1)
     {
-        printf("Unable to open joystick event\n");
+        fprintf(stderr, "Unable to open joystick event\n");
         return -1;
     }
 
