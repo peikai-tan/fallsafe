@@ -34,7 +34,7 @@
             },
             "args": [
                 "debug-common",
-                "file=utils/csvReader.c"
+                "file=test/queue_test.c"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
