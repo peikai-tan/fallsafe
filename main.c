@@ -65,18 +65,22 @@ static ActivityState process_data(ArrayList accelero_datachunk)
     return STATIONARY;
 }
 
-static void send_thingsboard(Vector3 data, double time_ms)
+static void send_thingsboardAccel(Vector3 data, double time_ms)
 {
     // Send data to thingsboard
 }
 
+static void send_thingsboardState(ActivityState state, double time_ms)
+{
+    // Send data to thingsboard
+}
 
 static void perform_task(FallsafeContext* context)
 {
     // Gather the sensor data at current moment instant
     Vector3 acceleroData = gather_data(context);
 
-    send_thingsboard(acceleroData, context->unixTime);
+    send_thingsboardAccel(acceleroData, context->unixTime);
     // Check if queue is at the limit
     if (context->acceleroDataset->length == queueLimit)
     {
@@ -91,6 +95,7 @@ static void perform_task(FallsafeContext* context)
         }
         // Pass the deqeueued chunk to ML and get the activity state
         ActivityState state = process_data(dataChunk);
+        send_thingsboardState(state, context->unixTime);
         arraylist_destroy(dataChunk);
         // Show LED
         setMap(0x0000, context->sensehatLEDMap, &context->senseHatfbfd);
