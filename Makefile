@@ -1,7 +1,7 @@
 .PHONY: debug-common debug-arraylist O-common debug-main
 
-CFLAGS=-std=gnu99 -Wextra -pedantic
-CFLAGS_STRICT=-std=c99 -Wextra -Werror -pedantic
+CFLAGS=-std=gnu99 -Wextra -Wall -Wno-unused-parameter -Wno-unused-variable -Wno-duplicate-decl-specifier 
+CFLAGS_STRICT=-std=c99 -Wextra -Wall -Werror -pedantic
 LIBS=-lm -lpthread
 
 debug-common:
@@ -36,7 +36,7 @@ O-common:
 	gcc -O3 $(CFLAGS) $(LIBS) $(file) ./common/*.c -o test-O
 
 debug-main:
-	gcc -g $(CFLAGS) $(LIBS) -lrt -lwiringPi ./common/*.c ./utils/*.c ./lib/sensehat/sensehat.c main.c -o main
+	gcc -g $(CFLAGS) $(LIBS) -lrt -lwiringPi ./common/*.c ./utils/*.c ./lib/sensehat/sensehat.c lib/MQTT-C/src/mqtt.c lib/MQTT-C/src/mqtt_pal.c -Ilib/MQTT-C/include main.c -o main
 
 test-main: debug-main
 	./main
