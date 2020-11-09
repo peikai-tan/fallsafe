@@ -30,7 +30,14 @@
 static bool continueProgram = true;
 static double dataGatherIntervalMS = 1000.0 / GatheringFrequency;
 static unsigned int updateIntervalMicroSeconds = 500;
-static size_t queueLimit = 100;
+static size_t queueTarget = 30;
+
+typedef enum fallsafe_state
+{
+    INITIAL,
+    NORMAL,
+    FALLEN
+} FallsafeState;
 
 typedef struct fallsafe_context
 {
@@ -42,17 +49,18 @@ typedef struct fallsafe_context
     int joystickFB;
     int senseHatfbfd;
     uint16_t *sensehatLEDMap;
+    FallsafeState state;
 } FallsafeContext;
 
 /**
  * Read data from accelerometer and push to dataset queue 
 */
-static Vector3 gather_data(const FallsafeContext* context)
+static Vector3 gather_data(const FallsafeContext *context)
 {
     Vector3 acceleroData;
     shGet2GAccel(&acceleroData);
 #if defined(DEBUG)
-    printf("[Gather Data] unixtime: %lf actualinterval: %lf accelerometer: ", context->unixTime, context->deltaTime);
+    printf("[Gather Data] unixtime: %0.lf actualinterval: %0.3lf accelerometer: ", context->unixTime, context->actualInterval);
     vector3_print(&acceleroData);
 #endif // DEBUG
     queue_enqueue(context->acceleroDataset, &acceleroData);
@@ -76,32 +84,39 @@ static void send_thingsboardState(ActivityState state, double time_ms)
     // Send data to thingsboard
 }
 
-static void perform_task(FallsafeContext* context)
+static void perform_task(FallsafeContext *context)
 {
+    static ActivityState previousState;
     // Gather the sensor data at current moment instant
     Vector3 acceleroData = gather_data(context);
 
     send_thingsboardAccel(acceleroData, context->unixTime);
-    // Check if queue is at the limit
-    if (context->acceleroDataset->length == queueLimit)
+
+    // Check if queue is at the target length for processing
+    if (context->acceleroDataset->length < queueTarget)
     {
-        // Dequeue buffer
-        ArrayList dataChunk = arraylist_new(Vector3, queueLimit * 1.25);
-        Vector3 data;
-        // Dequeue all
-        while (context->acceleroDataset->length)
-        {
-            queue_dequeue(context->acceleroDataset, &data);
-            arraylist_push(dataChunk, &data);
-        }
-        // Pass the deqeueued chunk to ML and get the activity state
-        ActivityState state = process_data(dataChunk);
-        send_thingsboardState(state, context->unixTime);
-        arraylist_destroy(dataChunk);
-        // Show LED
-        setMap(0x0000, context->sensehatLEDMap, &context->senseHatfbfd);
-        drawActivity(state, context->sensehatLEDMap, &context->senseHatfbfd);
+        context->state = INITIAL;
+        return;
     }
+    context->state = NORMAL;
+
+    // Dequeue buffer
+    ArrayList dataChunk = arraylist_new(Vector3, queueTarget * 1.25);
+    Vector3 data;
+    queue_dequeue(context->acceleroDataset, &data);
+    arraylist_push(dataChunk, &data);
+    // Pass the deqeueued chunk to ML and get the activity state
+    ActivityState state = process_data(dataChunk);
+    send_thingsboardState(state, context->unixTime);
+    arraylist_destroy(dataChunk);
+    // Show LED
+    if (previousState != state)
+    {
+        setMap(0x0000, context->sensehatLEDMap, &context->senseHatfbfd);
+        previousState = state;
+    }
+
+    drawActivity(state, context->sensehatLEDMap, &context->senseHatfbfd);
 }
 
 /**
@@ -123,11 +138,55 @@ static void check_perform_task(FallsafeContext *context)
 }
 
 /**
+ * If falling is detected, program state will changed to waiting user input to indicate whether it is an false positive.
+ * If no input is detected after a certain period of time, an alert to external output will be triggered
+*/
+static void await_userinput(FallsafeContext *context)
+{
+}
+
+static void update_running_led(FallsafeContext *context)
+{
+    static const double interval = 1000.0 / 30;
+    static int previousPosition = 0;
+    static int currentPosition = 0;
+    static double timepassed = 0;
+    timepassed += context->deltaTime;
+    if (timepassed > interval)
+    {
+        shSetPixel(previousPosition, 0, 0, 1, context->sensehatLEDMap, &context->senseHatfbfd);
+        shSetPixel(currentPosition, 0, 0x4000, 1, context->sensehatLEDMap, &context->senseHatfbfd);
+        shSetPixel(7, previousPosition, 0, 1, context->sensehatLEDMap, &context->senseHatfbfd);
+        shSetPixel(7, currentPosition, 0x4000, 1, context->sensehatLEDMap, &context->senseHatfbfd);
+        shSetPixel(0, 7 - previousPosition, 0, 1, context->sensehatLEDMap, &context->senseHatfbfd);
+        shSetPixel(0, 7 - currentPosition, 0x4000, 1, context->sensehatLEDMap, &context->senseHatfbfd);
+        shSetPixel(7 - previousPosition, 7, 0, 1, context->sensehatLEDMap, &context->senseHatfbfd);
+        shSetPixel(7 - currentPosition, 7, 0x4000, 1, context->sensehatLEDMap, &context->senseHatfbfd);
+        previousPosition = currentPosition;
+        currentPosition = (currentPosition + 1) % 7;
+        timepassed -= interval;
+    }
+}
+
+/**
  * Main update loop
 */
-static void update(FallsafeContext* context)
+static void update(FallsafeContext *context)
 {
-    check_perform_task(context);
+    update_running_led(context);
+    switch (context->state)
+    {
+    case INITIAL:
+    case NORMAL:
+        check_perform_task(context);
+        break;
+    case FALLEN:
+        await_userinput(context);
+        break;
+    default:
+        fprintf(stderr, "Invalid State: %d\n", context->state);
+        break;
+    }
 }
 
 /**
@@ -165,7 +224,8 @@ int main(int agc, char **argv)
     double previousTime;
     double currentTime;
 
-    context.acceleroDataset = queue_new(Vector3, queueLimit * 1.25);
+    context.acceleroDataset = queue_new(Vector3, queueTarget * 1.25);
+    context.state = INITIAL;
 
     // Set up programming termination handler
     signal(SIGINT, exit_handler);
