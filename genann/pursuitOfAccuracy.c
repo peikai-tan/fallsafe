@@ -85,9 +85,9 @@ int main(void)
         runningLength = 20673;
     }
 
+    long t = time(0);
     for (; accuracy < 0.9; i++)
     {
-        long t = time(0);
         srand(t);
 
         // Falling
@@ -99,6 +99,9 @@ int main(void)
         //1604480156 0.822534 (2, 10)
         //1604478720 0.860503 (2, 20)
         //1604479191 0.912092 (2, 50)
+
+        // Activity (updated)
+        //1604897173 0.755333 (2, 20)
 
         genann *ann = genann_init(dataSize, hiddenLayers, nPerLayer, outputSize);
 
@@ -153,11 +156,13 @@ int main(void)
         printf("Hidden Layers: \t\t%d\n", hiddenLayers);
         printf("Neurons Per Layer: \t%d\n\n", nPerLayer);
         printf("Best:\t\t%ld\n", bestTime);
-        printf("\t\t%lf\n", bestAccuracy);
+        printf("\t\t%lf\n\n", bestAccuracy);
         printf("Runs:\t\t%d\n", i + 1);
+        printf("Current:\t%ld\n", t);
 
         genann_free(ann);
         fclose(ptr);
+        t++;
     }
     return 0;
 }
