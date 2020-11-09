@@ -103,6 +103,9 @@ int main(void)
         // Activity (updated)
         //1604897173 0.755333 (2, 20)
 
+        // Activity (PI)
+        // 1604899635 0.509505 (2,20)
+
         genann *ann = genann_init(dataSize, hiddenLayers, nPerLayer, outputSize);
 
         char buf[bufferSize]; // Slightly oversized just in case.
