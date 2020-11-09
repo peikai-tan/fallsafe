@@ -6,10 +6,12 @@
 #include <sys/time.h>
 #include <time.h>
 
-#include "common/arraylist.h"
+#include "common/queue.h"
 #include "common/vector3.h"
 
 #include "lib/sensehat/sensehat.h"
+
+#define DEBUG
 
 /* Psuedo code:
  *
@@ -24,27 +26,77 @@
 
 // Configurations
 // TODO: allow CLI args to overide these
-static unsigned int dataGatherIntervalMS = 250;
-static unsigned int updateIntervalMicroSeconds = 500;
 static bool continueProgram = true;
+static unsigned int dataGatherIntervalMS = 16;
+static unsigned int updateIntervalMicroSeconds = 500;
+static size_t queueLimit = 100;
 
+static Queue acceleroDataset;
 double applicationStartTime;
 
+// Sense hat
+int senseHatfbfd = 0;
+uint16_t *sensehatLEDMap = 0;
+
 /**
- * Read data from accelerometer and append to data arraylist 
+ * Read data from accelerometer and push to dataset queue 
 */
-static void gather_data(double actual_interval_ms, double unix_time_ms)
+static Vector3 gather_data(double actual_interval_ms, double unix_time_ms)
 {
     Vector3 acceleroData;
     shGet2GAccel(&acceleroData);
+#if defined(DEBUG)
     printf("[Gather Data] unixtime: %lf actualinterval: %lf accelerometer: ", unix_time_ms, actual_interval_ms);
     vector3_print(&acceleroData);
+#endif // DEBUG
+    queue_enqueue(acceleroDataset, &acceleroData);
+    return acceleroData;
+}
+
+static ActivityState process_data(ArrayList accelero_datachunk)
+{
+    // ML processing
+
+    return STATIONARY;
+}
+
+static void send_thingsboard(Vector3 data)
+{
+    // Send data to thingsboard
+}
+
+
+static void perform_task(const double *actual_interval, const double *delta_time_ms, const double *unix_time_ms)
+{
+    // Gather the sensor data at current moment instant
+    Vector3 acceleroData = gather_data(*actual_interval, *unix_time_ms);
+
+    send_thingsboard(acceleroData);
+    // Check if queue is at the limit
+    if (acceleroDataset->length == queueLimit)
+    {
+        // Dequeue buffer
+        ArrayList dataChunk = arraylist_new(Vector3, queueLimit * 1.25);
+        Vector3 data;
+        // Dequeue all
+        while (acceleroDataset->length)
+        {
+            queue_dequeue(acceleroDataset, &data);
+            arraylist_push(dataChunk, &data);
+        }
+        // Pass the deqeueued chunk to ML and get the activity state
+        ActivityState state = process_data(dataChunk);
+        arraylist_destroy(dataChunk);
+        // Show LED
+        setMap(0x0000, sensehatLEDMap, &senseHatfbfd);
+        drawActivity(state, sensehatLEDMap, &senseHatfbfd);
+    }
 }
 
 /**
- * To runs every update to check if it is time to gather data 
+ * To runs every update to check if it is time to gather data and process them
 */
-static void check_gather_data(const double *delta_time_ms, const double *unix_time_ms)
+static void check_perform_task(const double *delta_time_ms, const double *unix_time_ms)
 {
     static double timepassed = 0;
     static double previousTime = 0;
@@ -55,7 +107,7 @@ static void check_gather_data(const double *delta_time_ms, const double *unix_ti
         previousTime = previousTime == 0 ? applicationStartTime : previousTime;
         actualInterval = *unix_time_ms - previousTime;
         previousTime = *unix_time_ms;
-        gather_data(actualInterval, *unix_time_ms);
+        perform_task(&actualInterval, delta_time_ms, unix_time_ms);
         timepassed -= dataGatherIntervalMS;
     }
 }
@@ -65,7 +117,7 @@ static void check_gather_data(const double *delta_time_ms, const double *unix_ti
 */
 static void update(double delta_time_ms, double unix_time_ms)
 {
-    check_gather_data(&delta_time_ms, &unix_time_ms);
+    check_perform_task(&delta_time_ms, &unix_time_ms);
 }
 
 /**
@@ -103,9 +155,9 @@ int main(int agc, char **argv)
     double currentTime;
     double deltaTime;
 
-    int fbfd = 0;
+    acceleroDataset = queue_new(Vector3, 125);
+
     int joystickFB = 0;
-    uint16_t *map = 0;
 
     // Set up programming termination handler
     signal(SIGINT, exit_handler);
@@ -113,12 +165,12 @@ int main(int agc, char **argv)
     wiringPiSetupSys();
 
     // Set up sensehat sensors
-    if (shInit(1, &fbfd) == 0)
+    if (shInit(1, &senseHatfbfd) == 0)
     {
         printf("Unable to open sense, is it connected?\n");
         return -1;
     }
-    if (mapLEDFrameBuffer(&map, &fbfd) == 0)
+    if (mapLEDFrameBuffer(&sensehatLEDMap, &senseHatfbfd) == 0)
     {
         printf("Unable to map LED to Frame Buffer. \n");
         return -1;
@@ -141,7 +193,9 @@ int main(int agc, char **argv)
         update(deltaTime, get_unixtime_ms());
     }
 
-    shShutdown(&fbfd, map);
+    queue_destroy(acceleroDataset);
+    setMap(0x0000, sensehatLEDMap, &senseHatfbfd);
+    shShutdown(&senseHatfbfd, sensehatLEDMap);
     printf("Program terminated\n");
     return 0;
 }
