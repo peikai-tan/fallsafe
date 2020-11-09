@@ -108,7 +108,13 @@ int main(void)
         // Activity (PI)
         // 1604899736 0.555217 (2,20)
 
-        genann *ann = genann_init(dataSize, hiddenLayers, nPerLayer, outputSize);
+        // genann *ann = genann_init(dataSize, hiddenLayers, nPerLayer, outputSize);
+
+        // Loading Saved Model
+        FILE *saved = fopen(savedModel, "r");
+
+        genann *ann = genann_read(saved);
+        fclose(saved);
 
         char buf[bufferSize]; // Slightly oversized just in case.
 
@@ -155,8 +161,10 @@ int main(void)
             bestAccuracy = accuracy;
             bestTime = t;
 
+            FILE *saved = fopen(savedModel, "w");
             // Saving Model
-            genann_write(ann, fopen(savedModel, "w"));
+            genann_write(ann, saved);
+            fclose(saved);
         }
 
         system("clear");
