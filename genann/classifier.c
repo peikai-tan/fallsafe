@@ -3,22 +3,25 @@
 #define fallClassifier "dataFiles/fallClassifier.ann"
 #define activityClassifier "dataFiles/activityClassifier.ann"
 
-void classifier_new(Classifier c)
+Classifier classifier_new()
 {
-    c.fC = fopen(fallClassifier, "r");
-    c.fClassifier = genann_read(c.fC);
+    Classifier c = (Classifier)malloc(sizeof(struct classifier));
+    c->fC = fopen(fallClassifier, "r");
+    c->fClassifier = genann_read(c->fC);
 
-    c.aC = fopen(activityClassifier, "r");
-    c.aClassifier = genann_read(c.aC);
+    c->aC = fopen(activityClassifier, "r");
+    c->aClassifier = genann_read(c->aC);
 
-    fclose(c.fC);
-    fclose(c.aC);
+    fclose(c->fC);
+    fclose(c->aC);
+
+    return c;
 }
 
 void classifier_destroy(Classifier c)
 {
-    genann_free(c.fClassifier);
-    genann_free(c.aClassifier);
+    genann_free(c->fClassifier);
+    genann_free(c->aClassifier);
 }
 
 int prediction(const double *output)
@@ -44,12 +47,12 @@ int classifier_predict(Classifier c, double *sample)
     * 3 -> Station
     * 4 -> Jump
    */
-    const double *fOutput = genann_run(c.fClassifier, sample);
+    const double *fOutput = genann_run(c->fClassifier, sample);
 
     if (prediction(fOutput) == 1)
         return 0;
 
-    const double *aOutput = genann_run(c.aClassifier, sample);
+    const double *aOutput = genann_run(c->aClassifier, sample);
 
     return prediction(aOutput) + 1;
 }

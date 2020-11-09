@@ -14,7 +14,7 @@ typedef struct classifier
     genann *fClassifier;
     FILE *aC;
     genann *aClassifier;
-} Classifier;
+} * Classifier;
 
 const Classifier classifier;
 
