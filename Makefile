@@ -1,6 +1,6 @@
 .PHONY: debug-common debug-arraylist O-common debug-main
 
-CFLAGS=-std=c99 -Wextra -pedantic
+CFLAGS=-std=gnu99 -Wextra -pedantic
 CFLAGS_STRICT=-std=c99 -Wextra -Werror -pedantic
 LIBS=-lm -lpthread
 
@@ -36,7 +36,7 @@ O-common:
 	gcc -O3 $(CFLAGS) $(LIBS) $(file) ./common/*.c -o test-O
 
 debug-main:
-	gcc -g $(CFLAGS) $(LIBS) -lrt -lwiringPi ./common/*.c ./utils/*.c main.c -o main
+	gcc -g $(CFLAGS) $(LIBS) -lrt -lwiringPi ./common/*.c ./utils/*.c ./lib/sensehat/sensehat.c main.c -o main
 
 test-main: debug-main
 	./main

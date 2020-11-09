@@ -35,6 +35,8 @@
 //
 #include "sensehat.h"
 
+//#define DEBUG
+
 static int file_acc = -1;	   // accelerometer/gyro
 static int file_mag = -1;	   // magnetometer
 static int file_joystick = -1; // joystick
@@ -58,8 +60,9 @@ int shInit(int iChannel, int *pfbfd)
 		struct fb_fix_screeninfo fix_info;
 
 		sprintf(filename, "/dev/i2c-%d", iChannel);
+#if defined(DEBUG)
 		printf("filename %s\n", filename);
-
+#endif
 		*pfbfd = open(FILEPATH, O_RDWR);
 		if (*pfbfd == -1)
 		{
@@ -76,7 +79,7 @@ int shInit(int iChannel, int *pfbfd)
 
 		if (strcmp(fix_info.id, "RPi-Sense FB") != 0)
 		{
-				printf("%s \n", "Error: RPi-Sense FB not found");
+				fprintf(stderr, "%s \n", "Error: RPi-Sense FB not found");
 				close(*pfbfd);
 				goto badexit;
 		}
@@ -87,15 +90,18 @@ int shInit(int iChannel, int *pfbfd)
 				fprintf(stderr, "Failed to acquire bus for accelerometer\n");
 				goto badexit;
 		}
+#if defined(DEBUG)
 		printf("Aceel %d\n", file_acc);
+#endif
 		file_mag = open(filename, O_RDWR);
 		if (ioctl(file_mag, I2C_SLAVE, MAGN_ADDR) < 0)
 		{
 				fprintf(stderr, "Failed to acquire bus for magnetometer\n");
 				goto badexit;
 		}
+#if defined(DEBUG)
 		printf("Mag %d\n", file_mag);
-
+#endif
 		//	file_joystick = open(filename, O_RDWR);
 		//	if(file_joystick < 0)
 		//	{
@@ -417,13 +423,20 @@ static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iL
 		int rc;
 		rc = write(iHandle, &ucAddr, 1);
 		if (ucAddr == 0xf2)
-				printf("joy stick i2c read: %d \n", rc);
+		{
+#if defined(DEBUG)
+			printf("joy stick i2c read: %d \n", rc);
+#endif // DEBUG
+		}
+		
 		if (rc == 1)
 		{
 				rc = read(iHandle, buf, iLen);
+#if defined(DEBUG)
 				printf("i2c read: %d \n", rc);
 				printf("i2c buf: %d \n", buf[0]);
 				printf("i2c buf: %d \n", buf[1]);
+#endif // DEBUG
 		}
 		return rc;
 } /* i2cRead() */
@@ -449,7 +462,9 @@ int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen)
 				return -1; // invalid write
 
 		ucTemp[0] = ucAddr; // send the register number first
+#if defined(DEBUG)
 		printf("Register number: %d %x\n", ucAddr, ucAddr);
+#endif
 		memcpy(&ucTemp[1], buf, iLen); // followed by the data
 		rc = write(iHandle, ucTemp, iLen + 1);
 		return rc - 1;
