@@ -3,12 +3,14 @@
 #include <time.h>
 #include "genann.h"
 
+#define GETLENGTH 0
+
 #define dataSize 90
 #define hiddenLayers 2
-#define nPerLayer 50
+#define nPerLayer 20
 #define outputSize 4
-#define file "dataFiles/trainingFiles/fallClassifier.csv"
-// #define file "dataFiles/trainingFiles/activityClassifier.csv"
+// #define file "dataFiles/trainingFiles/fallClassifier.csv"
+#define file "dataFiles/trainingFiles/activityClassifier.csv"
 
 #include "../common/arraylist.h"
 
@@ -29,7 +31,7 @@ ArrayList getValues(char buf[])
 
 void getOutput(double **label, double i)
 {
-    double r[outputSize] = {0.0, 0.0};
+    double r[outputSize] = {0.0, 0.0, 0.0, 0.0};
     r[(int)i] = 1;
     *label = r;
 }
@@ -60,15 +62,27 @@ int main(void)
     int lengthOfCSV;
     int runningLength;
 
+#if GETLENGTH
+    char buf[bufferSize];
+    FILE *ptr = fopen(file, "r");
+    while (fgets(buf, bufferSize, ptr) != NULL)
+    {
+        lengthOfCSV++;
+    }
+
+    printf("%d, %f\n", lengthOfCSV, lengthOfCSV * 0.75);
+    exit(0);
+#endif
+
     if (file == "dataFiles/trainingFiles/fallClassifier.csv")
     {
-        lengthOfCSV = 4846;
-        runningLength = 3634;
+        lengthOfCSV = 15430;
+        runningLength = 11572;
     }
     else
     {
-        lengthOfCSV = 9692;
-        runningLength = 7269;
+        lengthOfCSV = 27564;
+        runningLength = 20673;
     }
 
     for (; accuracy < 0.9; i++)
@@ -96,13 +110,6 @@ int main(void)
         float correctCount = 0.0f;
 
         FILE *ptr = fopen(file, "r");
-
-        // while (fgets(buf, bufferSize, ptr) != NULL)
-        // {
-        //     lengthOfCSV++;
-        // }
-
-        // printf("%d, %f\n", lengthOfCSV, lengthOfCSV * 0.75);
 
         // Train
         for (; runs < runningLength; runs++) // 3634 = fall  7269 = activity

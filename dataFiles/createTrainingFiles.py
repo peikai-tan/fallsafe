@@ -12,7 +12,6 @@ duration = 1
 
 labels = ["walking", "running", "stationary", "jumping"]
 
-
 datasets = {
     "falling": list(),
     "jumping": list(),
@@ -31,9 +30,9 @@ def setup():
 def combineIndividualActivities():
     print("Creating Input Files...")
 
-    # Limits the length of trimming to the shortest dataset
-    minBTWFallAndOthers = None
-    # Limits the length of trimming to the shortest dataset
+    # Sets the length of trimming for the other datasets according to the length of falling
+    lenFalling = None
+    # Sets the length of trimming for the other datasets to the shortest one
     minBTWOthers = None
 
     for folder in datasets.keys():
@@ -45,105 +44,115 @@ def combineIndividualActivities():
             for row in f:
                 datasets[folder].append([float(dat) for dat in row])
 
-        minBTWFallAndOthers = len(datasets[folder]) if minBTWFallAndOthers == None else min(
-            minBTWFallAndOthers, len(datasets[folder]))
-
         if folder != "falling":
             minBTWOthers = len(datasets[folder]) if minBTWOthers == None else min(
                 minBTWOthers, len(datasets[folder]))
+        else:
+            lenFalling = len(datasets[folder])
 
-    return minBTWFallAndOthers, minBTWOthers
+    return lenFalling - pollingFreq, minBTWOthers - pollingFreq
 
 
-def trimTo(lF, lO, pollingFreq):
-    """
-    lF = Length to trim Falling to\n
-    lO = Length to trim everything else to
-    """
+def quantiseTo(pollingFreq):
     print("Trimming...")
 
     # How many samples to skip depending on poling frequency
     rateToCut = int(60 / pollingFreq)
 
     for key in datasets.keys():
-        trimmedDatasets = [[] for x in range(rateToCut)]
+        quantisedDatasets = [[] for x in range(rateToCut)]
         dataset = datasets[key]
-
-        end = lF if key == "falling" else lO
 
         for startingIndex in range(rateToCut):
             # Shift dataset to the right
             dataset = dataset[startingIndex:]
 
-            for i in range(0, (end - 1), rateToCut):
-                trimmedDatasets[startingIndex].append(
+            for i in range(0, len(dataset), rateToCut):
+                quantisedDatasets[startingIndex].append(
                     [float(x) for x in dataset[i]])
 
         datasets[key].clear()
 
-        for tD in trimmedDatasets:
+        for tD in quantisedDatasets:
             datasets[key] += tD
 
 
-def generateTrainingFilesOf(duration, pollingFreq):
-    print("Generating...")
+def LST(lF, lO, duration, pollingFreq):
+    """
+    Label. shuffle and Trim
+    """
 
-    fallClassifier = []
-    activityClassifier = []
+    def addLabel(key, array):
+        """
+        Add the correct label to the data
+        """
+        return array + [1] if key == "falling" else array + [labels.index(key)]
 
-    def addToDataset(key, array):
-        """
-        Seperates into the 2 different datasets.
-        """
-        if key == "falling":
-            fallClassifier.append(x + y + z + [1])
-        else:
-            activityClassifier.append(x + y + z + [labels.index(key)])
+    def appendRow(x, y, z, row):
+        x.append(float(row[0]))
+        y.append(float(row[1]))
+        z.append(float(row[2]))
+
+        return x, y, z
 
     for key in datasets.keys():
+        dataset = []
         x = []
         y = []
         z = []
+
+        end = lF if key == "falling" else lO
 
         # Initialise iterator
         i = 0
 
         # Fill up axes until correct length
         while i < duration * pollingFreq:
-            row = datasets[key][i]
-
-            x.append(float(row[0]))
-            y.append(float(row[1]))
-            z.append(float(row[2]))
-
+            x, y, z = appendRow(x, y, z, datasets[key][i])
             i += 1
 
         # Add the first sample
-        addToDataset(key, [x+y+z])
+        dataset.append(addLabel(key, x+y+z))
 
         # Continue until the end of the dataset
         while i < len(datasets[key]):
-            row = datasets[key][i]
-
-            x.append(float(row[0]))
-            y.append(float(row[1]))
-            z.append(float(row[2]))
+            x, y, z = appendRow(x, y, z, datasets[key][i])
 
             x.pop(0)
             y.pop(0)
             z.pop(0)
 
-            addToDataset(key, [x+y+z])
+            dataset.append(addLabel(key, x+y+z))
 
             i += 1
+
+        # Shuffle
+        for x in range(5):
+            random.shuffle(dataset)
+
+        # Trim
+        datasets[key] = dataset[:end]
+
+
+def generateTrainingFilesOf(lF):
+    """
+    lF = Length to trim Falling to\n
+    lO = Length to trim everything else to
+    """
+    print("Generating...")
+
+    fallClassifier = datasets["falling"]
+    activityClassifier = []
+
+    for label in labels:
+        activityClassifier += datasets[label]
 
     # Shuffling activityClassifier Data for training
     for x in range(5):
         random.shuffle(activityClassifier)
 
     # Adding same length of other activities into fallClassifer data
-    lengthOfFallClassifier = len(fallClassifier)
-    for i in range(lengthOfFallClassifier):
+    for i in range(lF):
         fallClassifier.append(activityClassifier[i][:-1] + [0])
 
     # Shuffling fallClassifier Data for training
@@ -160,6 +169,7 @@ def generateTrainingFilesOf(duration, pollingFreq):
 if __name__ == "__main__":
     setup()
     lF, lO = combineIndividualActivities()
-    trimTo(lF, lO, pollingFreq)
-    generateTrainingFilesOf(duration, pollingFreq)
+    quantiseTo(pollingFreq)
+    LST(lF, lO, duration, pollingFreq)
+    generateTrainingFilesOf(lF)
     print("Row Size: {0}".format(int(np.ceil(pollingFreq * duration)) * 3))
