@@ -36,6 +36,14 @@ int prediction(const double *output)
 
 int classifier_predict(Classifier c, double *sample)
 {
+    /**
+    * Prediction:
+    * 0 -> Fall
+    * 1 -> Walk
+    * 2 -> Run
+    * 3 -> Station
+    * 4 -> Jump
+   */
     const double *fOutput = genann_run(c.fClassifier, sample);
 
     if (prediction(fOutput) == 1)
