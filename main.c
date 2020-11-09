@@ -155,7 +155,7 @@ static double get_monotonicclock_ms(void)
 */
 void exit_handler(int signum)
 {
-    printf("Handling: %d\n", signum);
+    printf("\nHandling SIGINT: %d\n", signum);
     continueProgram = false;
 }
 

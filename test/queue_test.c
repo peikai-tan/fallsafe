@@ -74,7 +74,7 @@ int main(void)
     }
 
     puts("Peaking");
-    holder = *(int*)queue_peek(intQueue);
+    holder = *(int *)queue_peek(intQueue);
     printf("Peaked: %d\n", holder);
 
     puts("More dequeue than enqueue till none");
@@ -90,6 +90,32 @@ int main(void)
     }
 
     queue_destroy(intQueue);
+
+    puts("Queue range test ==============================");
+
+    intQueue = queue_new(int, 125);
+    int *outArray = (int *)malloc(sizeof(int) * 30);
+
+    for (size_t i = 100; i < 200; i++)
+    {
+        queue_enqueue(intQueue, &i);
+
+        if (intQueue->length > 30)
+        {
+            int out;
+            arraylist_print(intQueue->_list, printBuffer, int_string);
+            queue_peekRange(intQueue, 30, (void **)&outArray);
+            printf("  ");
+            for (size_t ii = 0; ii < 30; ii++)
+            {
+                printf("%d, ", outArray[ii]);
+            }
+            puts("");
+            queue_dequeue(intQueue, &out);
+        }
+    }
+
+    free(outArray);
     puts("Program finished");
     return 0;
 }
