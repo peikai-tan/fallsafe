@@ -12,6 +12,9 @@
 // #define file "dataFiles/trainingFiles/fallClassifier.csv"
 #define file "dataFiles/trainingFiles/activityClassifier.csv"
 
+
+#define savedModel "dataFiles/savedModel.ann"
+
 #include "../common/arraylist.h"
 
 ArrayList getValues(char buf[])
@@ -149,6 +152,9 @@ int main(void)
         {
             bestAccuracy = accuracy;
             bestTime = t;
+
+            // Saving Model
+            genann_write(ann, fopen(savedModel, "w"));
         }
 
         system("clear");
