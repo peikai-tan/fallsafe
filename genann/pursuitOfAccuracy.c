@@ -8,11 +8,9 @@
 #define dataSize 90
 #define hiddenLayers 2
 #define nPerLayer 20
-#define outputSize 4
-// #define file "dataFiles/trainingFiles/fallClassifier.csv"
-#define file "dataFiles/trainingFiles/activityClassifier.csv"
-
-#define savedModel "dataFiles/savedModel.ann"
+#define outputSize 2
+#define file "dataFiles/trainingFiles/fallClassifier.csv"
+// #define file "dataFiles/trainingFiles/activityClassifier.csv"
 
 #include "../common/arraylist.h"
 
@@ -33,7 +31,7 @@ ArrayList getValues(char buf[])
 
 void getOutput(double **label, double i)
 {
-    double r[outputSize] = {0.0, 0.0, 0.0, 0.0};
+    double r[outputSize] = {0.0, 0.0};
     r[(int)i] = 1;
     *label = r;
 }
@@ -93,28 +91,15 @@ int main(void)
         srand(t);
 
         // Falling
-        //1604481966 0.690594 (2, 10)
-        //1604479790 0.724422 (2, 20)
-        //1604480202 0.770627 (2, 50)
-
-        // Activity
-        //1604480156 0.822534 (2, 10)
-        //1604478720 0.860503 (2, 20)
-        //1604479191 0.912092 (2, 50)
+        // 1604904777 0.637118 (2, 20)
 
         // Activity (updated)
-        //1604897173 0.755333 (2, 20)
+        //1604904318 0.755913 (2, 20)
 
         // Activity (PI)
         // 1604899736 0.555217 (2,20)
 
-        // genann *ann = genann_init(dataSize, hiddenLayers, nPerLayer, outputSize);
-
-        // Loading Saved Model
-        FILE *saved = fopen(savedModel, "r");
-
-        genann *ann = genann_read(saved);
-        fclose(saved);
+        genann *ann = genann_init(dataSize, hiddenLayers, nPerLayer, outputSize);
 
         char buf[bufferSize]; // Slightly oversized just in case.
 
@@ -163,8 +148,18 @@ int main(void)
 
             FILE *saved = fopen(savedModel, "w");
             // Saving Model
-            genann_write(ann, saved);
-            fclose(saved);
+            if (file == "dataFiles/trainingFiles/activityClassifier.csv")
+            {
+                FILE *saved = fopen("dataFiles/activityClassifier.ann", "w");
+                genann_write(ann, saved);
+                fclose(saved);
+            }
+            else
+            {
+                FILE *saved = fopen("dataFiles/fallClassifier.ann", "w");
+                genann_write(ann, saved);
+                fclose(saved);
+            }
         }
 
         system("clear");
