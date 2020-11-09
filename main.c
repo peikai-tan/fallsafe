@@ -39,6 +39,7 @@ typedef struct fallsafe_context
     double unixTime;
     double actualInterval;
     Queue acceleroDataset;
+    int joystickFB;
     int senseHatfbfd;
     uint16_t *sensehatLEDMap;
 } FallsafeContext;
@@ -166,8 +167,6 @@ int main(int agc, char **argv)
 
     context.acceleroDataset = queue_new(Vector3, queueLimit * 1.25);
 
-    int joystickFB = 0;
-
     // Set up programming termination handler
     signal(SIGINT, exit_handler);
     // Set up wiring pi
@@ -184,7 +183,7 @@ int main(int agc, char **argv)
         fprintf(stderr, "Unable to map LED to Frame Buffer. \n");
         return -1;
     }
-    if (initJoystick(&joystickFB) == -1)
+    if (initJoystick(&context.joystickFB) == -1)
     {
         fprintf(stderr, "Unable to open joystick event\n");
         return -1;
