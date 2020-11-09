@@ -60,7 +60,7 @@ static Vector3 gather_data(const FallsafeContext *context)
     Vector3 acceleroData;
     shGet2GAccel(&acceleroData);
 #if defined(DEBUG)
-    printf("[Gather Data] unixtime: %0.lf actualinterval: %0.3lf accelerometer: ", context->unixTime, context->actualInterval);
+    printf("[Gather Data] unixtime: %0.0lf actualinterval: %0.3lf accelerometer: ", context->unixTime, context->actualInterval);
     vector3_print(&acceleroData);
 #endif // DEBUG
     queue_enqueue(context->acceleroDataset, &acceleroData);
@@ -71,7 +71,7 @@ static ActivityState process_data(ArrayList accelero_datachunk)
 {
     // ML processing
 
-    return STATIONARY;
+    return rand() < RAND_MAX / 120 ? FALLING : STATIONARY;
 }
 
 static void send_thingsboardAccel(Vector3 data, double time_ms)
@@ -114,6 +114,11 @@ static void perform_task(FallsafeContext *context)
     {
         setMap(0x0000, context->sensehatLEDMap, &context->senseHatfbfd);
         previousState = state;
+
+        if (state == FALLING)
+        {
+            context->state = FALLEN;
+        }
     }
 
     drawActivity(state, context->sensehatLEDMap, &context->senseHatfbfd);
@@ -143,6 +148,24 @@ static void check_perform_task(FallsafeContext *context)
 */
 static void await_userinput(FallsafeContext *context)
 {
+    static const double interval = 1000.0 / 15;
+    static int previousPosition = 0;
+    static int currentPosition = 0;
+    static double timepassed = 0;
+    static Joystick joystick;
+    timepassed += context->deltaTime;
+    if (timepassed > interval)
+    {
+        printf("[Waiting Input] time: %0.0lf\n", context->unixTime);
+        readJoystick(&context->joystickFB, &joystick);
+        if (joystick.state == RELEASE)
+        {
+            printf("Joystick direction: %s=====================================================\n", joystick.direction);
+            context->state = INITIAL;
+            timepassed = 0;
+        }
+        timepassed -= interval;
+    }
 }
 
 static void update_running_led(FallsafeContext *context)
@@ -225,7 +248,7 @@ int main(int agc, char **argv)
     double currentTime;
 
     context.acceleroDataset = queue_new(Vector3, queueTarget * 1.25);
-    context.state = INITIAL;
+    context.state = FALLEN;
 
     // Set up programming termination handler
     signal(SIGINT, exit_handler);
