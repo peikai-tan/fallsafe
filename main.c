@@ -26,30 +26,35 @@
 
 // Configurations
 // TODO: allow CLI args to overide these
+#define GatheringFrequency 30
 static bool continueProgram = true;
-static unsigned int dataGatherIntervalMS = 16;
+static double dataGatherIntervalMS = 1000.0 / GatheringFrequency;
 static unsigned int updateIntervalMicroSeconds = 500;
 static size_t queueLimit = 100;
 
-static Queue acceleroDataset;
-double applicationStartTime;
-
-// Sense hat
-int senseHatfbfd = 0;
-uint16_t *sensehatLEDMap = 0;
+typedef struct fallsafe_context
+{
+    double applicationStartTime;
+    double deltaTime;
+    double unixTime;
+    double actualInterval;
+    Queue acceleroDataset;
+    int senseHatfbfd;
+    uint16_t *sensehatLEDMap;
+} FallsafeContext;
 
 /**
  * Read data from accelerometer and push to dataset queue 
 */
-static Vector3 gather_data(double actual_interval_ms, double unix_time_ms)
+static Vector3 gather_data(const FallsafeContext* context)
 {
     Vector3 acceleroData;
     shGet2GAccel(&acceleroData);
 #if defined(DEBUG)
-    printf("[Gather Data] unixtime: %lf actualinterval: %lf accelerometer: ", unix_time_ms, actual_interval_ms);
+    printf("[Gather Data] unixtime: %lf actualinterval: %lf accelerometer: ", context->unixTime, context->deltaTime);
     vector3_print(&acceleroData);
 #endif // DEBUG
-    queue_enqueue(acceleroDataset, &acceleroData);
+    queue_enqueue(context->acceleroDataset, &acceleroData);
     return acceleroData;
 }
 
@@ -66,48 +71,47 @@ static void send_thingsboard(Vector3 data, double time_ms)
 }
 
 
-static void perform_task(const double *actual_interval, const double *delta_time_ms, const double *unix_time_ms)
+static void perform_task(FallsafeContext* context)
 {
     // Gather the sensor data at current moment instant
-    Vector3 acceleroData = gather_data(*actual_interval, *unix_time_ms);
+    Vector3 acceleroData = gather_data(context);
 
-    send_thingsboard(acceleroData, *unix_time_ms);
+    send_thingsboard(acceleroData, context->unixTime);
     // Check if queue is at the limit
-    if (acceleroDataset->length == queueLimit)
+    if (context->acceleroDataset->length == queueLimit)
     {
         // Dequeue buffer
         ArrayList dataChunk = arraylist_new(Vector3, queueLimit * 1.25);
         Vector3 data;
         // Dequeue all
-        while (acceleroDataset->length)
+        while (context->acceleroDataset->length)
         {
-            queue_dequeue(acceleroDataset, &data);
+            queue_dequeue(context->acceleroDataset, &data);
             arraylist_push(dataChunk, &data);
         }
         // Pass the deqeueued chunk to ML and get the activity state
         ActivityState state = process_data(dataChunk);
         arraylist_destroy(dataChunk);
         // Show LED
-        setMap(0x0000, sensehatLEDMap, &senseHatfbfd);
-        drawActivity(state, sensehatLEDMap, &senseHatfbfd);
+        setMap(0x0000, context->sensehatLEDMap, &context->senseHatfbfd);
+        drawActivity(state, context->sensehatLEDMap, &context->senseHatfbfd);
     }
 }
 
 /**
  * To runs every update to check if it is time to gather data and process them
 */
-static void check_perform_task(const double *delta_time_ms, const double *unix_time_ms)
+static void check_perform_task(FallsafeContext *context)
 {
     static double timepassed = 0;
     static double previousTime = 0;
-    static double actualInterval = 0;
-    timepassed += *delta_time_ms;
+    timepassed += context->deltaTime;
     if (timepassed >= dataGatherIntervalMS)
     {
-        previousTime = previousTime == 0 ? applicationStartTime : previousTime;
-        actualInterval = *unix_time_ms - previousTime;
-        previousTime = *unix_time_ms;
-        perform_task(&actualInterval, delta_time_ms, unix_time_ms);
+        previousTime = previousTime == 0 ? context->applicationStartTime : previousTime;
+        context->actualInterval = context->unixTime - previousTime;
+        previousTime = context->unixTime;
+        perform_task(context);
         timepassed -= dataGatherIntervalMS;
     }
 }
@@ -115,9 +119,9 @@ static void check_perform_task(const double *delta_time_ms, const double *unix_t
 /**
  * Main update loop
 */
-static void update(double delta_time_ms, double unix_time_ms)
+static void update(FallsafeContext* context)
 {
-    check_perform_task(&delta_time_ms, &unix_time_ms);
+    check_perform_task(context);
 }
 
 /**
@@ -151,11 +155,11 @@ void exit_handler(int signum)
 
 int main(int agc, char **argv)
 {
+    FallsafeContext context;
     double previousTime;
     double currentTime;
-    double deltaTime;
 
-    acceleroDataset = queue_new(Vector3, queueLimit * 1.25);
+    context.acceleroDataset = queue_new(Vector3, queueLimit * 1.25);
 
     int joystickFB = 0;
 
@@ -165,12 +169,12 @@ int main(int agc, char **argv)
     wiringPiSetupSys();
 
     // Set up sensehat sensors
-    if (shInit(1, &senseHatfbfd) == 0)
+    if (shInit(1, &context.senseHatfbfd) == 0)
     {
         fprintf(stderr, "Unable to open sense, is it connected?\n");
         return -1;
     }
-    if (mapLEDFrameBuffer(&sensehatLEDMap, &senseHatfbfd) == 0)
+    if (mapLEDFrameBuffer(&context.sensehatLEDMap, &context.senseHatfbfd) == 0)
     {
         fprintf(stderr, "Unable to map LED to Frame Buffer. \n");
         return -1;
@@ -181,21 +185,22 @@ int main(int agc, char **argv)
         return -1;
     }
 
-    applicationStartTime = get_unixtime_ms();
+    context.applicationStartTime = get_unixtime_ms();
     previousTime = get_monotonicclock_ms();
 
     while (continueProgram)
     {
         delayMicroseconds(updateIntervalMicroSeconds);
         currentTime = get_monotonicclock_ms();
-        deltaTime = currentTime - previousTime;
+        context.deltaTime = currentTime - previousTime;
         previousTime = currentTime;
-        update(deltaTime, get_unixtime_ms());
+        context.unixTime = get_unixtime_ms();
+        update(&context);
     }
 
-    queue_destroy(acceleroDataset);
-    setMap(0x0000, sensehatLEDMap, &senseHatfbfd);
-    shShutdown(&senseHatfbfd, sensehatLEDMap);
+    queue_destroy(context.acceleroDataset);
+    setMap(0x0000, context.sensehatLEDMap, &context.senseHatfbfd);
+    shShutdown(&context.senseHatfbfd, context.sensehatLEDMap);
     printf("Program terminated\n");
     return 0;
 }
