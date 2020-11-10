@@ -5,7 +5,6 @@
 #include <wiringPi.h>
 #include <poll.h>
 
-
 #include "common/queue.h"
 #include "common/vector3.h"
 
@@ -49,6 +48,8 @@ typedef struct fallsafe_context
     double unixTime;
     double actualInterval;
     Queue acceleroDataset;
+    Vector3 *acceleroDataChunk;
+    double *unrolledDataChunk;
     int joystickFB;
     struct pollfd evpoll;
     int sensehatfbfd;
@@ -73,10 +74,42 @@ static Vector3 gather_data(const FallsafeContext *context)
     return acceleroData;
 }
 
-static ActivityState process_data(ArrayList accelero_datachunk)
+static ActivityState process_data(const FallsafeContext *context)
 {
+    ActivityState output;
     // ML processing
+    queue_peekRange(context->acceleroDataset, queueTarget, (void **)&context->acceleroDataChunk);
+    // Unrolling data
+    for (size_t i = 0; i < queueTarget; i++)
+    {
+        context->unrolledDataChunk[i] = context->acceleroDataChunk[i].x;
+    }
+    for (size_t i = 0; i < queueTarget; i++)
+    {
+        context->unrolledDataChunk[i + queueTarget] = context->acceleroDataChunk[i].y;
+    }
+    for (size_t i = 0; i < queueTarget; i++)
+    {
+        context->unrolledDataChunk[i + queueTarget * 2] = context->acceleroDataChunk[i].z;
+    }
 
+    // #if defined(DEBUG)
+    //     for (size_t i = 0; i < queueTarget; i++)
+    //     {
+    //         printf("%d ", (int)i);
+    //         vector3_print(&context->acceleroDataChunk[i]);
+    //     }
+
+    //     for (size_t i = 0; i < queueTarget * 3; i++)
+    //     {
+    //         printf("%d %lf\n", (int)i, context->unrolledDataChunk[i]);
+    //     }
+    //     getchar();
+    // #endif // DEBUG
+
+    // End processing
+
+    // return output;
     return rand() < RAND_MAX / 180 ? FALLING : STATIONARY;
 }
 
@@ -107,14 +140,11 @@ static void perform_task(FallsafeContext *context)
     context->state = NORMAL;
 
     // Dequeue buffer
-    ArrayList dataChunk = arraylist_new(Vector3, queueTarget * 1.25);
     Vector3 data;
-    queue_dequeue(context->acceleroDataset, &data);
-    arraylist_push(dataChunk, &data);
     // Pass the deqeueued chunk to ML and get the activity state
-    ActivityState state = process_data(dataChunk);
+    ActivityState state = process_data(context);
+    queue_dequeue(context->acceleroDataset, &data);
     send_thingsboardState(state, context->unixTime);
-    arraylist_destroy(dataChunk);
     // Show LED
     if (previousState != state)
     {
@@ -252,6 +282,8 @@ int main(int agc, char **argv)
     double currentTime;
 
     context.acceleroDataset = queue_new(Vector3, queueTarget * 1.25);
+    context.acceleroDataChunk = (Vector3 *)malloc(sizeof(Vector3) * queueTarget * 3);
+    context.unrolledDataChunk = (double *)malloc(sizeof(double) * queueTarget * 3);
     context.state = INITIAL;
     context.evpoll.events = POLLIN;
 
@@ -291,6 +323,8 @@ int main(int agc, char **argv)
         update(&context);
     }
 
+    free(context.acceleroDataChunk);
+    free(context.unrolledDataChunk);
     queue_destroy(context.acceleroDataset);
     setMap(0x0000, context.sensehatLEDMap, &context.sensehatfbfd);
     shShutdown(&context.sensehatfbfd, context.sensehatLEDMap);
