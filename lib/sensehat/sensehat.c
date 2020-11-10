@@ -517,15 +517,23 @@ int initJoystick(int *fd)
 int readJoystick(int *fd, Joystick *joy)
 {
 		int codeSize = -1;
-		struct input_event ev;
-		codeSize = read(*fd, &ev, sizeof(struct input_event));
+		struct input_event ev[64];
+		codeSize = read(*fd, ev, sizeof(struct input_event) * 64);
 
-		if (codeSize > 0)
+		if (codeSize < (int)sizeof(struct input_event))
 		{
-				checkJoystickState(ev.type, joy);
-				checkJoystickDir(ev.code, joy);
+			fprintf(stderr, "expected %d bytes, got %d\n",
+					(int)sizeof(struct input_event), codeSize);
+			return 0;
+		}
 
-				return 1;
+		for (size_t i = 0; i < codeSize / sizeof(struct input_event); i++)
+		{
+			if (ev->type != EV_KEY)
+				continue;
+			checkJoystickState(ev->value, joy);
+			checkJoystickDir(ev->code, joy);
+			return 1;
 		}
 
 		return 0;

@@ -29,7 +29,7 @@
 #define GatheringFrequency 30
 static bool continueProgram = true;
 static double dataGatherIntervalMS = 1000.0 / GatheringFrequency;
-static unsigned int updateIntervalMicroSeconds = 500;
+static unsigned int updateIntervalMicroSeconds = 1111;
 static size_t queueTarget = 30;
 
 typedef enum fallsafe_state
@@ -59,11 +59,13 @@ static Vector3 gather_data(const FallsafeContext *context)
 {
     Vector3 acceleroData;
     shGet2GAccel(&acceleroData);
+    queue_enqueue(context->acceleroDataset, &acceleroData);
+
 #if defined(DEBUG)
-    printf("[Gather Data] unixtime: %0.0lf actualinterval: %0.3lf accelerometer: ", context->unixTime, context->actualInterval);
+    printf("[Gather Data] unixtime: %0.0lf actualinterval: %0.3lf queue: %zu accelerometer: ", context->unixTime, context->actualInterval, context->acceleroDataset->length);
     vector3_print(&acceleroData);
 #endif // DEBUG
-    queue_enqueue(context->acceleroDataset, &acceleroData);
+
     return acceleroData;
 }
 
@@ -139,6 +141,10 @@ static void check_perform_task(FallsafeContext *context)
         previousTime = context->unixTime;
         perform_task(context);
         timepassed -= dataGatherIntervalMS;
+        if (timepassed > dataGatherIntervalMS)
+        {
+            timepassed = 0;
+        }
     }
 }
 
@@ -148,27 +154,34 @@ static void check_perform_task(FallsafeContext *context)
 */
 static void await_userinput(FallsafeContext *context)
 {
-    static const double interval = 1000.0 / 15;
-    static int previousPosition = 0;
-    static int currentPosition = 0;
-    static double timepassed = 0;
     static Joystick joystick;
-    timepassed += context->deltaTime;
-    if (timepassed > interval)
+    printf("[Waiting Input] unixtime: %0.0lf\n", context->unixTime);
+    if (readJoystick(&context->joystickFB, &joystick))
     {
-        printf("[Waiting Input] time: %0.0lf\n", context->unixTime);
-        readJoystick(&context->joystickFB, &joystick);
+        if (joystick.state == PRESSED)
+        {
+            printf("[INFO] Joystick PRESSED direction: %s=====================================================\n", joystick.direction);
+        }
+        if (joystick.state == HOLD)
+        {
+            printf("[INFO] Joystick HOLD direction: %s=====================================================\n", joystick.direction);
+        }
         if (joystick.state == RELEASE)
         {
-            printf("Joystick direction: %s=====================================================\n", joystick.direction);
+            printf("[INFO] Joystick RELEASE direction: %s=====================================================\n", joystick.direction);
             context->state = INITIAL;
-            timepassed = 0;
+            queue_destroy(context->acceleroDataset);
+            context->acceleroDataset = queue_new(Vector3, queueTarget);
+            setMap(0x0000, context->sensehatLEDMap, &context->senseHatfbfd);
         }
-        timepassed -= interval;
+    }
+    else
+    {
+        fprintf(stderr, "[ERROR] Joystick read error. \n");
     }
 }
 
-static void update_running_led(FallsafeContext *context)
+static void update_rolling_led(FallsafeContext *context)
 {
     static const double interval = 1000.0 / 30;
     static int previousPosition = 0;
@@ -188,6 +201,10 @@ static void update_running_led(FallsafeContext *context)
         previousPosition = currentPosition;
         currentPosition = (currentPosition + 1) % 7;
         timepassed -= interval;
+        if (timepassed > interval)
+        {
+            timepassed = 0;
+        }
     }
 }
 
@@ -196,7 +213,7 @@ static void update_running_led(FallsafeContext *context)
 */
 static void update(FallsafeContext *context)
 {
-    update_running_led(context);
+    update_rolling_led(context);
     switch (context->state)
     {
     case INITIAL:
@@ -207,7 +224,7 @@ static void update(FallsafeContext *context)
         await_userinput(context);
         break;
     default:
-        fprintf(stderr, "Invalid State: %d\n", context->state);
+        fprintf(stderr, "[ERROR] Invalid State: %d\n", context->state);
         break;
     }
 }
@@ -237,7 +254,7 @@ static double get_monotonicclock_ms(void)
 */
 void exit_handler(int signum)
 {
-    printf("\nHandling SIGINT: %d\n", signum);
+    printf("\n[INFO] Handling SIGINT: %d\n", signum);
     continueProgram = false;
 }
 
@@ -248,7 +265,7 @@ int main(int agc, char **argv)
     double currentTime;
 
     context.acceleroDataset = queue_new(Vector3, queueTarget * 1.25);
-    context.state = FALLEN;
+    context.state = INITIAL;
 
     // Set up programming termination handler
     signal(SIGINT, exit_handler);
@@ -258,17 +275,17 @@ int main(int agc, char **argv)
     // Set up sensehat sensors
     if (shInit(1, &context.senseHatfbfd) == 0)
     {
-        fprintf(stderr, "Unable to open sense, is it connected?\n");
+        fprintf(stderr, "[ERROR] Unable to open sense, is it connected?\n");
         return -1;
     }
     if (mapLEDFrameBuffer(&context.sensehatLEDMap, &context.senseHatfbfd) == 0)
     {
-        fprintf(stderr, "Unable to map LED to Frame Buffer. \n");
+        fprintf(stderr, "[ERROR] Unable to map LED to Frame Buffer. \n");
         return -1;
     }
     if (initJoystick(&context.joystickFB) == -1)
     {
-        fprintf(stderr, "Unable to open joystick event\n");
+        fprintf(stderr, "[ERROR] Unable to open joystick event\n");
         return -1;
     }
 
@@ -288,6 +305,6 @@ int main(int agc, char **argv)
     queue_destroy(context.acceleroDataset);
     setMap(0x0000, context.sensehatLEDMap, &context.senseHatfbfd);
     shShutdown(&context.senseHatfbfd, context.sensehatLEDMap);
-    printf("Program terminated\n");
+    printf("[INFO] Program terminated\n");
     return 0;
 }
