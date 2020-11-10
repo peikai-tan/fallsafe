@@ -504,12 +504,14 @@ int initJoystick(int *fd)
 		if (*fd == -1) 
 		{
 				printf("Unable to open file! Errno: %d\n", errno);
+				close(*fd);
 				return -1;
 		}
 		int retVal = ioctl(*fd, EVIOCGNAME(sizeof(name)), name);
 		if (retVal == -1)
 		{
 				printf("Unable to get event!!\n");
+				close(*fd);
 				return -1;
 		}
 		return 0;

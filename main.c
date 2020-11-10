@@ -3,8 +3,10 @@
 #include <stdbool.h>
 #include <signal.h>
 #include <wiringPi.h>
-#include <sys/time.h>
 #include <time.h>
+#include <poll.h>
+
+#include <sys/time.h>
 
 #include "common/queue.h"
 #include "common/vector3.h"
@@ -47,7 +49,8 @@ typedef struct fallsafe_context
     double actualInterval;
     Queue acceleroDataset;
     int joystickFB;
-    int senseHatfbfd;
+    struct pollfd evpoll;
+    int sensehatfbfd;
     uint16_t *sensehatLEDMap;
     FallsafeState state;
 } FallsafeContext;
@@ -114,16 +117,16 @@ static void perform_task(FallsafeContext *context)
     // Show LED
     if (previousState != state)
     {
-        setMap(0x0000, context->sensehatLEDMap, &context->senseHatfbfd);
+        setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
         previousState = state;
 
         if (state == FALLING)
         {
             context->state = FALLEN;
+            printf("[Waiting Input] unixtime: %0.0lf\n", context->unixTime);
         }
     }
-
-    drawActivity(state, context->sensehatLEDMap, &context->senseHatfbfd);
+    drawActivity(state, context->sensehatLEDMap, &context->sensehatfbfd);
 }
 
 /**
@@ -155,29 +158,32 @@ static void check_perform_task(FallsafeContext *context)
 static void await_userinput(FallsafeContext *context)
 {
     static Joystick joystick;
-    printf("[Waiting Input] unixtime: %0.0lf\n", context->unixTime);
-    if (readJoystick(&context->joystickFB, &joystick))
+
+    while (poll(&context->evpoll, 1, 0) > 0)
     {
-        if (joystick.state == PRESSED)
+        if (readJoystick(&context->joystickFB, &joystick))
         {
-            printf("[INFO] Joystick PRESSED direction: %s=====================================================\n", joystick.direction);
+            if (joystick.state == PRESSED)
+            {
+                printf("[INFO] Joystick PRESSED direction: %s=====================================================\n", joystick.direction);
+            }
+            if (joystick.state == HOLD)
+            {
+                printf("[INFO] Joystick HOLD direction: %s=====================================================\n", joystick.direction);
+            }
+            if (joystick.state == RELEASE)
+            {
+                printf("[INFO] Joystick RELEASE direction: %s=====================================================\n", joystick.direction);
+                context->state = INITIAL;
+                queue_destroy(context->acceleroDataset);
+                context->acceleroDataset = queue_new(Vector3, queueTarget);
+                setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
+            }
         }
-        if (joystick.state == HOLD)
+        else
         {
-            printf("[INFO] Joystick HOLD direction: %s=====================================================\n", joystick.direction);
+            fprintf(stderr, "[ERROR] Joystick read error. \n");
         }
-        if (joystick.state == RELEASE)
-        {
-            printf("[INFO] Joystick RELEASE direction: %s=====================================================\n", joystick.direction);
-            context->state = INITIAL;
-            queue_destroy(context->acceleroDataset);
-            context->acceleroDataset = queue_new(Vector3, queueTarget);
-            setMap(0x0000, context->sensehatLEDMap, &context->senseHatfbfd);
-        }
-    }
-    else
-    {
-        fprintf(stderr, "[ERROR] Joystick read error. \n");
     }
 }
 
@@ -190,14 +196,14 @@ static void update_rolling_led(FallsafeContext *context)
     timepassed += context->deltaTime;
     if (timepassed > interval)
     {
-        shSetPixel(previousPosition, 0, 0, 1, context->sensehatLEDMap, &context->senseHatfbfd);
-        shSetPixel(currentPosition, 0, 0x4000, 1, context->sensehatLEDMap, &context->senseHatfbfd);
-        shSetPixel(7, previousPosition, 0, 1, context->sensehatLEDMap, &context->senseHatfbfd);
-        shSetPixel(7, currentPosition, 0x4000, 1, context->sensehatLEDMap, &context->senseHatfbfd);
-        shSetPixel(0, 7 - previousPosition, 0, 1, context->sensehatLEDMap, &context->senseHatfbfd);
-        shSetPixel(0, 7 - currentPosition, 0x4000, 1, context->sensehatLEDMap, &context->senseHatfbfd);
-        shSetPixel(7 - previousPosition, 7, 0, 1, context->sensehatLEDMap, &context->senseHatfbfd);
-        shSetPixel(7 - currentPosition, 7, 0x4000, 1, context->sensehatLEDMap, &context->senseHatfbfd);
+        shSetPixel(previousPosition, 0, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+        shSetPixel(currentPosition, 0, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+        shSetPixel(7, previousPosition, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+        shSetPixel(7, currentPosition, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+        shSetPixel(0, 7 - previousPosition, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+        shSetPixel(0, 7 - currentPosition, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+        shSetPixel(7 - previousPosition, 7, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+        shSetPixel(7 - currentPosition, 7, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
         previousPosition = currentPosition;
         currentPosition = (currentPosition + 1) % 7;
         timepassed -= interval;
@@ -266,6 +272,7 @@ int main(int agc, char **argv)
 
     context.acceleroDataset = queue_new(Vector3, queueTarget * 1.25);
     context.state = INITIAL;
+    context.evpoll.events = POLLIN;
 
     // Set up programming termination handler
     signal(SIGINT, exit_handler);
@@ -273,12 +280,12 @@ int main(int agc, char **argv)
     wiringPiSetupSys();
 
     // Set up sensehat sensors
-    if (shInit(1, &context.senseHatfbfd) == 0)
+    if (shInit(1, &context.sensehatfbfd) == 0)
     {
         fprintf(stderr, "[ERROR] Unable to open sense, is it connected?\n");
         return -1;
     }
-    if (mapLEDFrameBuffer(&context.sensehatLEDMap, &context.senseHatfbfd) == 0)
+    if (mapLEDFrameBuffer(&context.sensehatLEDMap, &context.sensehatfbfd) == 0)
     {
         fprintf(stderr, "[ERROR] Unable to map LED to Frame Buffer. \n");
         return -1;
@@ -289,6 +296,7 @@ int main(int agc, char **argv)
         return -1;
     }
 
+    context.evpoll.fd = context.joystickFB;
     context.applicationStartTime = get_unixtime_ms();
     previousTime = get_monotonicclock_ms();
 
@@ -303,8 +311,8 @@ int main(int agc, char **argv)
     }
 
     queue_destroy(context.acceleroDataset);
-    setMap(0x0000, context.sensehatLEDMap, &context.senseHatfbfd);
-    shShutdown(&context.senseHatfbfd, context.sensehatLEDMap);
+    setMap(0x0000, context.sensehatLEDMap, &context.sensehatfbfd);
+    shShutdown(&context.sensehatfbfd, context.sensehatLEDMap);
     printf("[INFO] Program terminated\n");
     return 0;
 }
