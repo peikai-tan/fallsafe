@@ -3,13 +3,14 @@
 #include <stdbool.h>
 #include <signal.h>
 #include <wiringPi.h>
-#include <time.h>
 #include <poll.h>
 
-#include <sys/time.h>
 
 #include "common/queue.h"
 #include "common/vector3.h"
+
+#include "utils/time.h"
+#include "utils/mqtt-sender.h"
 
 #include "lib/sensehat/sensehat.h"
 
@@ -233,26 +234,6 @@ static void update(FallsafeContext *context)
         fprintf(stderr, "[ERROR] Invalid State: %d\n", context->state);
         break;
     }
-}
-
-/**
- * Gets unix time offset in milliseconds
-*/
-static double get_unixtime_ms()
-{
-    static struct timeval currentTime;
-    gettimeofday(&currentTime, NULL);
-    return currentTime.tv_sec * 1000.0 + currentTime.tv_usec / 1000.0;
-}
-
-/**
- * Gets high precision arbitary time in milliseconds
-*/
-static double get_monotonicclock_ms(void)
-{
-    static struct timespec _ts;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &_ts);
-    return _ts.tv_sec * 1000.0 + _ts.tv_nsec / 1000000.0;
 }
 
 /**

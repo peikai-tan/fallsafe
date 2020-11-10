@@ -1,18 +1,19 @@
 #include "timer.h"
+#include "../time.h"
 
 void startTimer()
 {
-    start_t = clock();
+    start_t = get_monotonicclock_ms();
 }
 
 void endTimer()
 {
-    end_t = clock();
+    end_t = get_monotonicclock_ms();
 }
 
 
 double calculateTimer()
 {
-    double val = (double)(end_t - start_t) / CLOCKS_PER_SEC;
+    double val = (end_t - start_t) * 1000;
     return val;
 }
