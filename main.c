@@ -76,7 +76,7 @@ static ActivityState process_data(ArrayList accelero_datachunk)
 {
     // ML processing
 
-    return rand() < RAND_MAX / 120 ? FALLING : STATIONARY;
+    return rand() < RAND_MAX / 180 ? FALLING : STATIONARY;
 }
 
 static void send_thingsboardAccel(Vector3 data, double time_ms)
@@ -189,7 +189,7 @@ static void await_userinput(FallsafeContext *context)
 
 static void update_rolling_led(FallsafeContext *context)
 {
-    static const double interval = 1000.0 / 30;
+    static const double interval = 1000.0 / 15;
     static int previousPosition = 0;
     static int currentPosition = 0;
     static double timepassed = 0;

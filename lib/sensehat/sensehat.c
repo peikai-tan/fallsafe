@@ -524,8 +524,7 @@ int readJoystick(int *fd, Joystick *joy)
 
 		if (codeSize < (int)sizeof(struct input_event))
 		{
-			fprintf(stderr, "expected %d bytes, got %d\n",
-					(int)sizeof(struct input_event), codeSize);
+			fprintf(stderr, "expected %d bytes, got %d\n", (int)sizeof(struct input_event), codeSize);
 			return 0;
 		}
 
@@ -546,24 +545,24 @@ void checkJoystickDir(int evCode, Joystick *joy)
 		switch (evCode)
 		{
 				case UP:
-						(*joy).dir=UP;
-						(*joy).direction="UP";
+						joy->dir = UP;
+						joy->direction = "UP";
 						break;
 				case DOWN:
-						(*joy).dir=DOWN;
-						(*joy).direction="DOWN";
+						joy->dir=DOWN;
+						joy->direction = "DOWN";
 						break;
 				case LEFT:
-						(*joy).dir=LEFT;
-						(*joy).direction="LEFT";
+						joy->dir=LEFT;
+						joy->direction="LEFT";
 						break;
 				case RIGHT:
-						(*joy).dir=RIGHT;
-						(*joy).direction="RIGHT";
+						joy->dir=RIGHT;
+						joy->direction="RIGHT";
 						break;
 				case ENTER:
-						(*joy).dir=ENTER;
-						(*joy).direction="ENTER";
+						joy->dir=ENTER;
+						joy->direction="ENTER";
 						break;
 		}
 }
@@ -573,13 +572,13 @@ void checkJoystickState(int evType, Joystick *joy)
 		switch (evType)
 		{
 				case RELEASE:
-						(*joy).state=RELEASE;
+						joy->state=RELEASE;
 						break;
 				case PRESSED:
-						(*joy).state=PRESSED;
+						joy->state=PRESSED;
 						break;
 				case HOLD:
-						(*joy).state=HOLD;
+						joy->state=HOLD;
 						break;
 		}
 }
