@@ -103,6 +103,9 @@ int main(void)
         // Activity (updated)
         // 1604914247 0.789290 (2, 20)
 
+        // Activity (PI)
+        // 1604899736 0.555217 (2,20)
+
         genann *ann = genann_init(dataSize, hiddenLayers, nPerLayer, outputSize);
 
         char buf[bufferSize]; // Slightly oversized just in case.
@@ -150,6 +153,7 @@ int main(void)
             bestAccuracy = accuracy;
             bestTime = t;
 
+            FILE *saved = fopen(savedModel, "w");
             // Saving Model
             if (file == "dataFiles/trainingFiles/activityClassifier.csv")
             {
