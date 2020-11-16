@@ -19,11 +19,11 @@ void classifier_destroy(Classifier c)
     // save reinforced model first
     genann_write(c->cClassifier, c->cC);
 
-    // Freeing memory
-    genann_free(c->cClassifier);
-
     // Closing file
     fclose(c->cC);
+
+    // Freeing memory
+    genann_free(c->cClassifier);
 }
 
 int prediction(const double *output)
@@ -49,6 +49,8 @@ void classifier_reinforce(Classifier c, double *sample, int value)
 
     // save reinforced model first
     genann_write(c->cClassifier, c->cC);
+
+    fflush(c->cC);
 }
 
 int classifier_predict(Classifier c, double *sample)
