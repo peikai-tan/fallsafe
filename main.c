@@ -90,7 +90,7 @@ static ActivityState process_data(const FallsafeContext *context)
     }
 
     int state = classifier_predict(context->classifier, context->unrolledDataChunk);
-    printf("State: %i\n", state);
+
     switch (state)
     {
     // Fall

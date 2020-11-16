@@ -86,14 +86,12 @@ void mqtt_send_vector3(Vector3 *vector, long long time_ms)
     char application_message[256];
     snprintf(application_message, sizeof(application_message), "{\"x\": %lf, \"y\": %lf, \"z\": %lf}", vector->x, vector->y, vector->z);
     mqtt_publish(&mqttClient, topic, application_message, strlen(application_message), MQTT_PUBLISH_QOS_0);
-    printf("Published: \n%s\n", application_message);
+    //printf("Published: \n%s\n", application_message);
     if (mqttClient.error != MQTT_OK)
     {
         fprintf(stderr, "Error: %s\n", mqtt_error_str(mqttClient.error));
         mqtt_exit(EXIT_FAILURE, sockfd, &clientDaemon);
     }
-    else
-        puts("No Errors");
 }
 
 void mqtt_send_activity(ActivityState activity_state, long long time_ms)
@@ -122,13 +120,11 @@ void mqtt_send_activity(ActivityState activity_state, long long time_ms)
     if (strlen(application_message) > 0)
     {
         mqtt_publish(&mqttClient, topic, application_message, strlen(application_message), MQTT_PUBLISH_QOS_0);
-        printf("Published: \n%s\n", application_message);
+        //printf("Published: \n%s\n", application_message);
         if (mqttClient.error != MQTT_OK)
         {
             fprintf(stderr, "Error: %s\n", mqtt_error_str(mqttClient.error));
-            mqtt_exit(EXIT_FAILURE, sockfd, &clientDaemon);
+            //mqtt_exit(EXIT_FAILURE, sockfd, &clientDaemon);
         }
-        else
-            puts("No Errors");
     }
 }
