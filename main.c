@@ -235,7 +235,7 @@ static void await_userinput(FallsafeContext *context)
     static Joystick joystick;
     static int currentSelection = -1;
 
-    ActivityState selections[3] = {STATIONARY, WALKING, RUNNING};
+    ActivityState selections[3] = {WALKING, RUNNING, STATIONARY};
 
     while (poll(&context->evpoll, 1, 0) > 0)
     {
@@ -255,16 +255,20 @@ static void await_userinput(FallsafeContext *context)
                 switch (joystick.dir)
                 {
                 case ENTER:
+                    if (currentSelection == -1)
+                        break;
+
                     context->state = INITIAL;
                     context->activityState = STATIONARY;
                     queue_destroy(context->acceleroDataset);
                     context->acceleroDataset = queue_new(Vector3, queueTarget);
                     setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
 
-                    // Reenforced learning
+                    // Reinforced learning
+                    classifier_reinforce(context->classifier, context->unrolledDataChunk, currentSelection + 1);
+                    printf("[INFO] Reinforced with %d\n", currentSelection + 1);
 
                     break;
-
 
                 case UP:
                 case RIGHT:

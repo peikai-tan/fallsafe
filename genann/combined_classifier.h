@@ -14,5 +14,6 @@ typedef struct classifier
 Classifier classifier_new();
 void classifier_destroy(Classifier);
 int classifier_predict(Classifier, double *);
+void classifier_reinforce(Classifier, double *, int);
 
 #endif // CLASSIFIER
