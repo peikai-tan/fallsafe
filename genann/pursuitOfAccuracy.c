@@ -106,6 +106,10 @@ int main(void)
         // Activity (PI)
         // 1604899736 0.555217 (2,20)
 
+        // Falling (CY)
+        // 1605521820
+        // 0.744604
+
         genann *ann = genann_init(dataSize, hiddenLayers, nPerLayer, outputSize);
 
         char buf[bufferSize]; // Slightly oversized just in case.
@@ -153,7 +157,7 @@ int main(void)
             bestAccuracy = accuracy;
             bestTime = t;
 
-            FILE *saved = fopen(savedModel, "w");
+            // FILE *saved = fopen(savedModel, "w");
             // Saving Model
             if (file == "dataFiles/trainingFiles/activityClassifier.csv")
             {
@@ -163,7 +167,7 @@ int main(void)
             }
             else
             {
-                FILE *saved = fopen("dataFiles/fallClassifier.ann", "w");
+                FILE *saved = fopen("dataFiles/fallClassifier-cy.ann", "w");
                 genann_write(ann, saved);
                 fclose(saved);
             }
