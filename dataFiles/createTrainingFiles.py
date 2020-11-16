@@ -10,11 +10,10 @@ import random
 pollingFreq = 30
 duration = 1
 
-labels = ["walking", "running", "stationary", "jumping"]
+labels = ["walking", "running", "stationary"]
 
 datasets = {
     "falling": list(),
-    "jumping": list(),
     "running": list(),
     "stationary": list(),
     "walking": list()
@@ -30,8 +29,6 @@ def setup():
 def combineIndividualActivities():
     print("Creating Input Files...")
 
-    # Sets the length of trimming for the other datasets according to the length of falling
-    lenFalling = None
     # Sets the length of trimming for the other datasets to the shortest one
     minBTWOthers = None
 
@@ -50,7 +47,7 @@ def combineIndividualActivities():
         else:
             lenFalling = len(datasets[folder])
 
-    return lenFalling - pollingFreq, minBTWOthers - pollingFreq
+    return minBTWOthers - pollingFreq
 
 
 def quantiseTo(pollingFreq):
@@ -75,6 +72,17 @@ def quantiseTo(pollingFreq):
 
         for tD in quantisedDatasets:
             datasets[key] += tD
+
+
+def loadExternalFiles():
+    # Add external data to datasets
+    with open("externalData/scienceDirectFalls.csv", "r") as file:
+        csvReader = csv.reader(file)
+        for row in csvReader:
+            datasets["falling"].append(
+                [float(row[0]), float(row[1]), float(row[2])])
+
+    return len(datasets["falling"])
 
 
 def LST(lF, lO, duration, pollingFreq):
@@ -168,8 +176,9 @@ def generateTrainingFilesOf(lF):
 
 if __name__ == "__main__":
     setup()
-    lF, lO = combineIndividualActivities()
+    lO = combineIndividualActivities()
     quantiseTo(pollingFreq)
+    lF = loadExternalFiles()
     LST(lF, lO, duration, pollingFreq)
     generateTrainingFilesOf(lF)
     print("Row Size: {0}".format(int(np.ceil(pollingFreq * duration)) * 3))

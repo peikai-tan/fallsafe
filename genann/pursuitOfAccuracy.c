@@ -76,8 +76,8 @@ int main(void)
 
     if (file == "dataFiles/trainingFiles/fallClassifier.csv")
     {
-        lengthOfCSV = 15430;
-        runningLength = 11572;
+        lengthOfCSV = 46701;
+        runningLength = 35025;
     }
     else
     {
@@ -91,10 +91,17 @@ int main(void)
         srand(t);
 
         // Falling
-        // 1604904777 0.637118 (2, 20)
+        // 1604915056 0.662478 (2, 20)
+        // 1604917045 0.703206 (2, 50)
+
+        // wo jump
+        // 1604923005 0.672877 (2, 20)
+
+        // wo jump with external
+        // 1604930537 0.777064 (2, 20)
 
         // Activity (updated)
-        //1604904318 0.755913 (2, 20)
+        // 1604914247 0.789290 (2, 20)
 
         // Activity (PI)
         // 1604899736 0.555217 (2,20)
