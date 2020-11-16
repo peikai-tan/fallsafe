@@ -1,6 +1,6 @@
 #include "classifier.h"
 
-#define fallClassifier "dataFiles/fallClassifier-cy.ann"
+#define fallClassifier "dataFiles/fallClassifier.ann"
 #define activityClassifier "dataFiles/activityClassifier.ann"
 
 Classifier classifier_new()
@@ -47,10 +47,10 @@ int classifier_predict(Classifier c, double *sample)
     * 3 -> Station
     * 4 -> Jump
    */
-    // const double *fOutput = genann_run(c->fClassifier, sample);
+    const double *fOutput = genann_run(c->fClassifier, sample);
 
-    // if (prediction(fOutput) == 1)
-    //     return 0;
+    if (prediction(fOutput) == 1)
+        return 0;
 
     const double *aOutput = genann_run(c->aClassifier, sample);
 

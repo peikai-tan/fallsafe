@@ -12,21 +12,6 @@ default: bin/sensehat.o bin/mqtt.o bin/mqtt_pal.o bin/genann.o main.h.gch
 	./common/*.c ./utils/*.c \
 	./main.c -o ./bin/fallsafe
 
-bin/sensehat.o: 
-	gcc $(CFLAGS) $(LIBS) -lrt -c ./lib/sensehat/sensehat.c -o ./bin/sensehat.o
-
-bin/mqtt.o:
-	gcc $(CFLAGS) $(LIBS) -lrt -I./lib/MQTT-C/include -c ./lib/MQTT-C/src/mqtt.c -o ./bin/mqtt.o
-
-bin/mqtt_pal.o:
-	gcc $(CFLAGS) $(LIBS) -lrt -I./lib/MQTT-C/include -c ./lib/MQTT-C/src/mqtt_pal.c -o ./bin/mqtt_pal.o
-
-bin/genann.o:
-	gcc $(CFLAGS) $(LIBS) -lrt -c ./genann/genann.c -o ./bin/genann.o
-
-main.h.gch:
-	gcc main.h -I./lib/MQTT-C/include
-
 debug-main: bin/sensehat.o bin/mqtt.o bin/mqtt_pal.o bin/genann.o main.h.gch
 	gcc -g $(CFLAGS) $(LIBS) -lrt -lwiringPi \
 	./bin/sensehat.o \
@@ -41,6 +26,21 @@ test-main: debug-main
 clean:
 	rm main.h.gch
 	rm -rf ./bin/*.o
+
+bin/sensehat.o: 
+	gcc $(CFLAGS) $(LIBS) -lrt -c ./lib/sensehat/sensehat.c -o ./bin/sensehat.o
+
+bin/mqtt.o:
+	gcc $(CFLAGS) $(LIBS) -lrt -I./lib/MQTT-C/include -c ./lib/MQTT-C/src/mqtt.c -o ./bin/mqtt.o
+
+bin/mqtt_pal.o:
+	gcc $(CFLAGS) $(LIBS) -lrt -I./lib/MQTT-C/include -c ./lib/MQTT-C/src/mqtt_pal.c -o ./bin/mqtt_pal.o
+
+bin/genann.o:
+	gcc $(CFLAGS) $(LIBS) -lrt -c ./genann/genann.c -o ./bin/genann.o
+
+main.h.gch:
+	gcc main.h -I./lib/MQTT-C/include
 
 debug-common:
 	gcc -g $(CFLAGS) $(LIBS) $(file) ./common/*.c -o ./common/test-run
