@@ -1,6 +1,7 @@
 #include "combined_classifier.h"
 
 #define combine_classifier "dataFiles/combinedClassifier.ann"
+#define outputSize 4
 
 Classifier classifier_new()
 {
@@ -22,13 +23,21 @@ int prediction(const double *output)
 {
     int maxIndex = 0;
     double biggest = 0;
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < outputSize; i++)
         if (output[i] > biggest)
         {
             maxIndex = i;
             biggest = output[i];
         }
     return maxIndex;
+}
+
+void classifier_reinforce(Classifier c, double *sample, int value)
+{
+    int *label = {0, 0, 0, 0};
+    label[i] = 1;
+
+    genann_train(c, sample, label, 1);
 }
 
 int classifier_predict(Classifier c, double *sample)
@@ -38,8 +47,9 @@ int classifier_predict(Classifier c, double *sample)
     * 0 -> Fall
     * 1 -> Walk
     * 2 -> Run
-    * 3 -> Station
+    * 3 -> Stationary
    */
+
     const double *cOutput = genann_run(c->cClassifier, sample);
 
     return prediction(cOutput);
