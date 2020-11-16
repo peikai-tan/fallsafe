@@ -189,7 +189,7 @@ static void perform_task(FallsafeContext *context)
     send_thingsboardAccel(context, acceleroData);
 
     // Check if queue is at the target length for processing
-    if (context->acceleroDataset->length <= queueTarget * 2)
+    if (context->acceleroDataset->length <= queueTarget)
     {
         context->state = INITIAL;
         return;
@@ -359,7 +359,7 @@ int main(int agc, char **argv)
     double currentTime;
     int toleranceTime = 0;
 
-    context.acceleroDataset = queue_new(Vector3, queueTarget * 3.25);
+    context.acceleroDataset = queue_new(Vector3, queueTarget * 1.25);
     context.acceleroDataChunk = (Vector3 *)malloc(sizeof(Vector3) * queueTarget * 3);
     context.unrolledDataChunk = (double *)malloc(sizeof(double) * queueTarget * 3);
     context.state = INITIAL;
