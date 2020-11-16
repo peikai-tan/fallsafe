@@ -115,12 +115,14 @@ static ActivityState process_data(const FallsafeContext *context)
 
 static void send_thingsboardAccel(Vector3 data, double time_ms)
 {
-    // Send data to thingsboard
+  // Send data to thingsboard
+  mqtt_send_vector3(&data, (long long) time_ms);  
 }
 
 static void send_thingsboardState(ActivityState state, double time_ms)
 {
-    // Send data to thingsboard
+  // Send data to thingsboard
+  mqtt_send_activity(state, (long long) time_ms);
 }
 
 static void perform_task(FallsafeContext *context)
@@ -291,6 +293,10 @@ int main(int agc, char **argv)
     signal(SIGINT, exit_handler);
     // Set up wiring pi
     wiringPiSetupSys();
+
+    // Set up MQTT Wrapper
+    mqtt_open_socket();
+    mqtt_setup_client();
 
     // Set up sensehat sensors
     if (shInit(1, &context.sensehatfbfd) == 0)

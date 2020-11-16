@@ -16,6 +16,6 @@ void mqtt_open_socket(void);
 
 void mqtt_setup_client(void);
 
-void mqtt_send_vector3(Vector3 * vector);
+void mqtt_send_vector3(Vector3 * vector, long long time_ms);
 
-void mqtt_send_activity(ActivityState activity_state);
+void mqtt_send_activity(ActivityState activity_state, long long time_ms);

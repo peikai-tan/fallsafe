@@ -74,10 +74,10 @@ void mqtt_setup_client(void)
     }
 }
 
-void mqtt_send_vector3(Vector3 *vector)
+void mqtt_send_vector3(Vector3 *vector, long long time_ms)
 {
     char application_message[256];
-    snprintf(application_message, sizeof(application_message), "{ x: %lf, y: %lf, z: %lf}", vector->x, vector->y, vector->z);
+    snprintf(application_message, sizeof(application_message), "{\"ts\": %lld,\"values\": {\"x\": %lf, \"y\": %lf, \"z\": %lf}}", time_ms, vector->x, vector->y, vector->z);
     mqtt_publish(&mqttClient, topic, application_message, strlen(application_message), MQTT_PUBLISH_QOS_0);
     printf("Published: \n%s\n", application_message);
     if (mqttClient.error != MQTT_OK)
@@ -89,25 +89,25 @@ void mqtt_send_vector3(Vector3 *vector)
         puts("No Errors");
 }
 
-void mqtt_send_activity(ActivityState activity_state)
+void mqtt_send_activity(ActivityState activity_state, long long time_ms)
 {
     char application_message[256] = {0};
     switch (activity_state)
     {
     case (FALLING):
-        snprintf(application_message, sizeof(application_message), "{ Acitivty State: %s }", "FALLING");
+        snprintf(application_message, sizeof(application_message), "{\"ts\": %lld, \"values\": {\"Activity State\": %s}}", time_ms, "FALLING");
         break;
     case (WALKING):
-        snprintf(application_message, sizeof(application_message), "{ Activity State: %s }", "WALKING");
+        snprintf(application_message, sizeof(application_message), "{\"ts\": %lld, \"values\": {\"Activity State\": %s}}", time_ms, "WALKING");
         break;
     case (RUNNING):
-        snprintf(application_message, sizeof(application_message), "{ Activity State: %s }", "RUNNING");
+        snprintf(application_message, sizeof(application_message), "{\"ts\": %lld, \"values\": {\"Activity State\": %s}}", time_ms, "RUNNING");
         break;
     case (JUMPING):
-        snprintf(application_message, sizeof(application_message), "{ Activity State: %s }", "JUMPING");
+        snprintf(application_message, sizeof(application_message), "{\"ts\": %lld, \"values\": {\"Activity State\": %s}}", time_ms, "JUMPING");
         break;
     case (STATIONARY):
-        snprintf(application_message, sizeof(application_message), "{ Activity State: %s }", "STATIONARY");
+        snprintf(application_message, sizeof(application_message), "{\"ts\": %lld, \"values\": {\"Activity State\": %s}}", time_ms, "STATIONARY");
         break;
     default:
         break;
