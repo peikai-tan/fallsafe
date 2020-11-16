@@ -8,6 +8,8 @@
 
 #include "genann/classifier.h"
 
+#include "./lib/tensorflowlite/common.h"
+
 #define DEBUG
 
 /* Psuedo code:
@@ -319,6 +321,7 @@ int main(int agc, char **argv)
     // Set up MQTT Wrapper
     mqtt_open_socket();
     mqtt_setup_client();
+
 
     // Set up sensehat sensors
     if (shInit(1, &context.sensehatfbfd) == 0)

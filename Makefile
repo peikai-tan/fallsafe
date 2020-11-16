@@ -29,6 +29,7 @@ main.h.gch:
 
 debug-main: bin/sensehat.o bin/mqtt.o bin/mqtt_pal.o bin/genann.o main.h.gch
 	gcc -g $(CFLAGS) $(LIBS) -lrt -lwiringPi \
+	-ltensorflowlite_c \
 	./bin/sensehat.o \
 	-I./lib/MQTT-C/include ./bin/mqtt.o ./bin/mqtt_pal.o \
 	./bin/genann.o ./genann/classifier.c \
