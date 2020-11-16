@@ -136,13 +136,13 @@ static ActivityState process_data(const FallsafeContext *context)
 static void send_thingsboardAccel(Vector3 data, double time_ms)
 {
   // Send data to thingsboard
-  mqtt_send_vector3(&data, (long long) time_ms);  
+  //mqtt_send_vector3(&data, (long long) time_ms);  
 }
 
 static void send_thingsboardState(ActivityState state, double time_ms)
 {
   // Send data to thingsboard
-  mqtt_send_activity(state, (long long) time_ms);
+  //mqtt_send_activity(state, (long long) time_ms);
 }
 
 static void perform_task(FallsafeContext *context)
