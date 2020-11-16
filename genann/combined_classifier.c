@@ -17,9 +17,8 @@ Classifier classifier_new()
 void classifier_destroy(Classifier c)
 {
     // save reinforced model first
+    c->cC = fopen(combine_classifier, "w");
     genann_write(c->cClassifier, c->cC);
-
-    // Closing file
     fclose(c->cC);
 
     // Freeing memory
@@ -48,9 +47,9 @@ void classifier_reinforce(Classifier c, double *sample, int value)
     genann_train(c->cClassifier, sample, (double *)label, 5);
 
     // save reinforced model first
+    c->cC = fopen(combine_classifier, "w");
     genann_write(c->cClassifier, c->cC);
-
-    fflush(c->cC);
+    fclose(c->cC);
 }
 
 int classifier_predict(Classifier c, double *sample)
