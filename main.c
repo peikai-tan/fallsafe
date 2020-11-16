@@ -26,8 +26,8 @@
 #define GatheringFrequency 30
 static bool continueProgram = true;
 static double dataGatherIntervalMS = 1000.0 / GatheringFrequency;
-static unsigned int updateIntervalMicroSeconds = 1111;
-static size_t queueTarget = 30;
+static unsigned int updateIntervalMicroSeconds = 1000;
+static size_t queueTarget = 60;
 
 typedef enum fallsafe_state
 {
@@ -51,6 +51,7 @@ typedef struct fallsafe_context
     uint16_t *sensehatLEDMap;
     FallsafeState state;
     Classifier classifier;
+    ActivityState activityState;
 } FallsafeContext;
 
 /**
@@ -89,6 +90,25 @@ static ActivityState process_data(const FallsafeContext *context)
         context->unrolledDataChunk[i + queueTarget * 2] = context->acceleroDataChunk[i].z;
     }
 
+// #if defined(DEBUG)
+
+//     if (context->unixTime - context->applicationStartTime > 5000)
+//     {
+//         for (size_t i = 0; i < queueTarget; i++)
+//         {
+//             printf("%d ", (int)i);
+//             vector3_print(&context->acceleroDataChunk[i]);
+//         }
+
+//         for (size_t i = 0; i < queueTarget * 3; i++)
+//         {
+//             printf("%d %lf\n", (int)i, context->unrolledDataChunk[i]);
+//         }
+//         getchar();
+//     }
+
+// #endif // DEBUG
+
     int state = classifier_predict(context->classifier, context->unrolledDataChunk);
 
     switch (state)
@@ -112,25 +132,6 @@ static ActivityState process_data(const FallsafeContext *context)
         fprintf(stderr, "[ERROR] Received other values\n");
         return STATIONARY;
     }
-    //
-    // #if defined(DEBUG)
-    //     for (size_t i = 0; i < queueTarget; i++)
-    //     {
-    //         printf("%d ", (int)i);
-    //         vector3_print(&context->acceleroDataChunk[i]);
-    //     }
-
-    //     for (size_t i = 0; i < queueTarget * 3; i++)
-    //     {
-    //         printf("%d %lf\n", (int)i, context->unrolledDataChunk[i]);
-    //     }
-    //     getchar();
-    // #endif // DEBUG
-
-    // End processing
-
-    // return output;
-    // return rand() < RAND_MAX / 180 ? FALLING : STATIONARY;
 }
 
 static void send_thingsboardAccel(FallsafeContext *context, Vector3 data)
@@ -145,28 +146,27 @@ static void send_thingsboardState(FallsafeContext *context, ActivityState state,
     mqtt_send_activity(state, (long long)time_ms);
 }
 
-static void perform_task(FallsafeContext *context)
+static void check_process_data(FallsafeContext *context)
 {
+    static double interval = 1000;
+    static double timepassed = 0;
     static ActivityState previousState;
-    // Gather the sensor data at current moment instant
-    Vector3 acceleroData = gather_data(context);
 
-    send_thingsboardAccel(context, acceleroData);
+    timepassed += context->actualInterval;
 
-    // Check if queue is at the target length for processing
-    if (context->acceleroDataset->length < queueTarget)
+    if (timepassed < interval)
     {
-        context->state = INITIAL;
         return;
     }
-    context->state = NORMAL;
 
-    // Dequeue buffer
-    Vector3 data;
-    // Pass the deqeueued chunk to ML and get the activity state
+    timepassed = 0;
+
+    // Check and perform ML data processing
+
     ActivityState state = process_data(context);
-    queue_dequeue(context->acceleroDataset, &data);
+    context->activityState = state;
     send_thingsboardState(context, state, context->unixTime);
+    printf("Proccessed State: %d ================================================\n", state);
     // Show LED
     if (previousState != state)
     {
@@ -179,7 +179,29 @@ static void perform_task(FallsafeContext *context)
             printf("[Waiting Input] unixtime: %0.0lf\n", context->unixTime);
         }
     }
-    drawActivity(state, context->sensehatLEDMap, &context->sensehatfbfd);
+}
+
+static void perform_task(FallsafeContext *context)
+{
+    // Gather the sensor data at current moment instant
+    Vector3 acceleroData = gather_data(context);
+
+    send_thingsboardAccel(context, acceleroData);
+
+    // Check if queue is at the target length for processing
+    if (context->acceleroDataset->length <= queueTarget)
+    {
+        context->state = INITIAL;
+        return;
+    }
+    context->state = NORMAL;
+
+    // Dequeue buffer
+    Vector3 data;
+    queue_dequeue(context->acceleroDataset, &data);
+
+    check_process_data(context);
+    drawActivity(context->activityState, context->sensehatLEDMap, &context->sensehatfbfd);
 }
 
 /**
@@ -304,6 +326,7 @@ int main(int agc, char **argv)
     FallsafeContext context;
     double previousTime;
     double currentTime;
+    int toleranceTime = 0;
 
     context.acceleroDataset = queue_new(Vector3, queueTarget * 1.25);
     context.acceleroDataChunk = (Vector3 *)malloc(sizeof(Vector3) * queueTarget * 3);
@@ -349,11 +372,12 @@ int main(int agc, char **argv)
 
     while (continueProgram)
     {
-        delayMicroseconds(updateIntervalMicroSeconds);
+        delayMicroseconds(updateIntervalMicroSeconds + toleranceTime);
         currentTime = get_monotonicclock_ms();
         context.deltaTime = currentTime - previousTime;
         previousTime = currentTime;
         context.unixTime = get_unixtime_ms();
+
         update(&context);
     }
 
