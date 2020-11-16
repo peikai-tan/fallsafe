@@ -90,24 +90,24 @@ static ActivityState process_data(const FallsafeContext *context)
         context->unrolledDataChunk[i + queueTarget * 2] = context->acceleroDataChunk[i].z;
     }
 
-// #if defined(DEBUG)
+    // #if defined(DEBUG)
 
-//     if (context->unixTime - context->applicationStartTime > 5000)
-//     {
-//         for (size_t i = 0; i < queueTarget; i++)
-//         {
-//             printf("%d ", (int)i);
-//             vector3_print(&context->acceleroDataChunk[i]);
-//         }
+    //     if (context->unixTime - context->applicationStartTime > 5000)
+    //     {
+    //         for (size_t i = 0; i < queueTarget; i++)
+    //         {
+    //             printf("%d ", (int)i);
+    //             vector3_print(&context->acceleroDataChunk[i]);
+    //         }
 
-//         for (size_t i = 0; i < queueTarget * 3; i++)
-//         {
-//             printf("%d %lf\n", (int)i, context->unrolledDataChunk[i]);
-//         }
-//         getchar();
-//     }
+    //         for (size_t i = 0; i < queueTarget * 3; i++)
+    //         {
+    //             printf("%d %lf\n", (int)i, context->unrolledDataChunk[i]);
+    //         }
+    //         getchar();
+    //     }
 
-// #endif // DEBUG
+    // #endif // DEBUG
 
     int state = classifier_predict(context->classifier, context->unrolledDataChunk);
 
@@ -233,6 +233,9 @@ static void check_perform_task(FallsafeContext *context)
 static void await_userinput(FallsafeContext *context)
 {
     static Joystick joystick;
+    static int currentSelection = -1;
+
+    ActivityState selections[3] = {STATIONARY, WALKING, RUNNING};
 
     while (poll(&context->evpoll, 1, 0) > 0)
     {
@@ -249,11 +252,34 @@ static void await_userinput(FallsafeContext *context)
             if (joystick.state == RELEASE)
             {
                 printf("[INFO] Joystick RELEASE direction: %s=====================================================\n", joystick.direction);
-                context->state = INITIAL;
-                context->activityState = STATIONARY;
-                queue_destroy(context->acceleroDataset);
-                context->acceleroDataset = queue_new(Vector3, queueTarget);
-                setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
+                switch (joystick.dir)
+                {
+                case ENTER:
+                    context->state = INITIAL;
+                    context->activityState = STATIONARY;
+                    queue_destroy(context->acceleroDataset);
+                    context->acceleroDataset = queue_new(Vector3, queueTarget);
+                    setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
+
+                    // Reenforced learning
+
+                    break;
+
+
+                case UP:
+                case RIGHT:
+                    currentSelection = (currentSelection + 1) % 3;
+                    setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
+                    drawActivity(selections[currentSelection], context->sensehatLEDMap, &context->sensehatfbfd);
+                    break;
+
+                case DOWN:
+                case LEFT:
+                    currentSelection = currentSelection - 1 < 0 ? 2 : (currentSelection - 1);
+                    setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
+                    drawActivity(selections[currentSelection], context->sensehatLEDMap, &context->sensehatfbfd);
+                    break;
+                }
             }
         }
         else
@@ -295,11 +321,11 @@ static void update_rolling_led(FallsafeContext *context)
 */
 static void update(FallsafeContext *context)
 {
-    update_rolling_led(context);
     switch (context->state)
     {
     case INITIAL:
     case NORMAL:
+        update_rolling_led(context);
         check_perform_task(context);
         break;
     case FALLEN:
@@ -343,7 +369,6 @@ int main(int agc, char **argv)
     // Set up MQTT Wrapper
     mqtt_open_socket();
     mqtt_setup_client();
-
 
     // Set up sensehat sensors
     if (shInit(1, &context.sensehatfbfd) == 0)
