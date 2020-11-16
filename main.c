@@ -6,6 +6,8 @@
 #include "utils/time.h"
 #include "utils/mqtt-sender.h"
 
+#include "genann/classifier.h"
+
 #define DEBUG
 
 /* Psuedo code:
@@ -48,6 +50,7 @@ typedef struct fallsafe_context
     int sensehatfbfd;
     uint16_t *sensehatLEDMap;
     FallsafeState state;
+    Classifier classifier;
 } FallsafeContext;
 
 /**
@@ -86,6 +89,30 @@ static ActivityState process_data(const FallsafeContext *context)
         context->unrolledDataChunk[i + queueTarget * 2] = context->acceleroDataChunk[i].z;
     }
 
+    int state = classifier_predict(context->classifier, context->unrolledDataChunk);
+    printf("State: %i\n", state);
+    switch(state)
+    {
+        // Fall
+        case 0:
+            return FALLING;
+        // Walk
+        case 1:
+            return WALKING;
+        // Run
+        case 2:
+            return RUNNING;
+        // Station
+        case 3:
+            return STATIONARY;
+        // Jump
+        case 4:
+            return JUMPING;
+        default:
+            fprintf(stderr, "[ERROR] Received other values\n");
+            return STATIONARY;
+    }
+    //
     // #if defined(DEBUG)
     //     for (size_t i = 0; i < queueTarget; i++)
     //     {
@@ -103,17 +130,19 @@ static ActivityState process_data(const FallsafeContext *context)
     // End processing
 
     // return output;
-    return rand() < RAND_MAX / 180 ? FALLING : STATIONARY;
+    // return rand() < RAND_MAX / 180 ? FALLING : STATIONARY;
 }
 
 static void send_thingsboardAccel(Vector3 data, double time_ms)
 {
-    // Send data to thingsboard
+  // Send data to thingsboard
+  mqtt_send_vector3(&data, (long long) time_ms);  
 }
 
 static void send_thingsboardState(ActivityState state, double time_ms)
 {
-    // Send data to thingsboard
+  // Send data to thingsboard
+  mqtt_send_activity(state, (long long) time_ms);
 }
 
 static void perform_task(FallsafeContext *context)
@@ -270,6 +299,8 @@ void exit_handler(int signum)
 
 int main(int agc, char **argv)
 {
+    Classifier classifier;
+
     FallsafeContext context;
     double previousTime;
     double currentTime;
@@ -284,6 +315,10 @@ int main(int agc, char **argv)
     signal(SIGINT, exit_handler);
     // Set up wiring pi
     wiringPiSetupSys();
+
+    // Set up MQTT Wrapper
+    mqtt_open_socket();
+    mqtt_setup_client();
 
     // Set up sensehat sensors
     if (shInit(1, &context.sensehatfbfd) == 0)
@@ -300,6 +335,12 @@ int main(int agc, char **argv)
     {
         fprintf(stderr, "[ERROR] Unable to open joystick event\n");
         return -1;
+    }
+
+    context.classifier = classifier_new();
+    if(context.classifier == NULL)
+    {
+        fprintf(stderr, "[ERROR] Unable to initialize model\n");
     }
 
     context.evpoll.fd = context.joystickFB;
@@ -319,6 +360,7 @@ int main(int agc, char **argv)
     free(context.acceleroDataChunk);
     free(context.unrolledDataChunk);
     queue_destroy(context.acceleroDataset);
+    classifier_destroy(context.classifier);
     setMap(0x0000, context.sensehatLEDMap, &context.sensehatfbfd);
     shShutdown(&context.sensehatfbfd, context.sensehatLEDMap);
     printf("[INFO] Program terminated\n");
