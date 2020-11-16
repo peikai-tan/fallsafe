@@ -1,6 +1,6 @@
 #include "classifier.h"
 
-#define fallClassifier "dataFiles/fallClassifier.ann"
+#define fallClassifier "dataFiles/fallClassifier-cy.ann"
 #define activityClassifier "dataFiles/activityClassifier.ann"
 
 Classifier classifier_new()

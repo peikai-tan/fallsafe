@@ -96,7 +96,29 @@ static ActivityState process_data(const FallsafeContext *context)
         context->unrolledDataChunk[i + queueTarget * 2] = context->acceleroDataChunk[i].z;
     }
 
-    return classifier_predict(context->classifier, context->unrolledDataChunk);
+    int state = classifier_predict(context->classifier, context->unrolledDataChunk);
+    printf("State: %i\n", state);
+    switch(state)
+    {
+        // Fall
+        case 0:
+            return FALLING;
+        // Walk
+        case 1:
+            return WALKING;
+        // Run
+        case 2:
+            return RUNNING;
+        // Station
+        case 3:
+            return STATIONARY;
+        // Jump
+        case 4:
+            return JUMPING;
+        default:
+            fprintf(stderr, "[ERROR] Received other values\n");
+            return STATIONARY;
+    }
     //
     // #if defined(DEBUG)
     //     for (size_t i = 0; i < queueTarget; i++)
