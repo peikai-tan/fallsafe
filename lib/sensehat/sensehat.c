@@ -292,8 +292,8 @@ int shGet2GAccel(Vector3 *anglesArr)
 
 	if (shGetAccel(&x, &y, &z))
 	{
-		anglesArr->x = (double)(x * twoG_LSB) / 1000;
-		anglesArr->y = (double)(y * twoG_LSB) / 1000;
+		anglesArr->x = -((double)(x * twoG_LSB) / 1000);
+		anglesArr->y = -((double)(y * twoG_LSB) / 1000);
 		anglesArr->z = (double)(z * twoG_LSB) / 1000;
 		return 1;
 	}
