@@ -104,7 +104,10 @@ int main(void)
         // 1604914247 0.789290 (2, 20)
 
         // Activity (PI)
-        // 1604899736 0.555217 (2,20)
+        // 1604899736 0.555217 (2, 20)
+
+        // Falling (Kai PI)
+        // 1605521523 0.734327 (2, 20)
 
         genann *ann = genann_init(dataSize, hiddenLayers, nPerLayer, outputSize);
 
@@ -153,7 +156,7 @@ int main(void)
             bestAccuracy = accuracy;
             bestTime = t;
 
-            FILE *saved = fopen(savedModel, "w");
+            // FILE *saved = fopen(savedModel, "w");
             // Saving Model
             if (file == "dataFiles/trainingFiles/activityClassifier.csv")
             {
