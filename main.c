@@ -1,17 +1,10 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <signal.h>
-#include <wiringPi.h>
-#include <poll.h>
+#include "main.h"
 
 #include "common/queue.h"
 #include "common/vector3.h"
 
 #include "utils/time.h"
 #include "utils/mqtt-sender.h"
-
-#include "lib/sensehat/sensehat.h"
 
 #define DEBUG
 
