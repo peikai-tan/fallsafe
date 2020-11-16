@@ -44,7 +44,11 @@ void classifier_reinforce(Classifier c, double *sample, int value)
     double label[] = {0, 0, 0, 0};
     label[value] = 1;
 
+    // training
     genann_train(c->cClassifier, sample, (double *)label, 5);
+
+    // save reinforced model first
+    genann_write(c->cClassifier, c->cC);
 }
 
 int classifier_predict(Classifier c, double *sample)
