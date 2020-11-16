@@ -22,7 +22,7 @@ int prediction(const double *output)
 {
     int maxIndex = 0;
     double biggest = 0;
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 4; i++)
         if (output[i] > biggest)
         {
             maxIndex = i;

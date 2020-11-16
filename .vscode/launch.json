@@ -9,7 +9,7 @@
             "name": "gcc - Build and debug main file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/main",
+            "program": "${workspaceFolder}/bin/fallsafe_debug",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

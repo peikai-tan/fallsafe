@@ -189,7 +189,7 @@ static void perform_task(FallsafeContext *context)
     send_thingsboardAccel(context, acceleroData);
 
     // Check if queue is at the target length for processing
-    if (context->acceleroDataset->length <= queueTarget)
+    if (context->acceleroDataset->length <= queueTarget * 2)
     {
         context->state = INITIAL;
         return;
@@ -250,6 +250,7 @@ static void await_userinput(FallsafeContext *context)
             {
                 printf("[INFO] Joystick RELEASE direction: %s=====================================================\n", joystick.direction);
                 context->state = INITIAL;
+                context->activityState = STATIONARY;
                 queue_destroy(context->acceleroDataset);
                 context->acceleroDataset = queue_new(Vector3, queueTarget);
                 setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
@@ -328,7 +329,7 @@ int main(int agc, char **argv)
     double currentTime;
     int toleranceTime = 0;
 
-    context.acceleroDataset = queue_new(Vector3, queueTarget * 1.25);
+    context.acceleroDataset = queue_new(Vector3, queueTarget * 3);
     context.acceleroDataChunk = (Vector3 *)malloc(sizeof(Vector3) * queueTarget * 3);
     context.unrolledDataChunk = (double *)malloc(sizeof(double) * queueTarget * 3);
     context.state = INITIAL;
