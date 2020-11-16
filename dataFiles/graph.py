@@ -8,10 +8,11 @@ option = -1
 
 os.chdir(os.getcwd() + "/dataFiles/")
 
+# for folder in folders:
 files = os.listdir(folders[option])
 
-
 for f in files:
+    print(f)
     f = csv.reader(open(folders[option] + "/" + f, "r"))
     next(f)
 
