@@ -91,26 +91,26 @@ static ActivityState process_data(const FallsafeContext *context)
 
     int state = classifier_predict(context->classifier, context->unrolledDataChunk);
     printf("State: %i\n", state);
-    switch(state)
+    switch (state)
     {
-        // Fall
-        case 0:
-            return FALLING;
-        // Walk
-        case 1:
-            return WALKING;
-        // Run
-        case 2:
-            return RUNNING;
-        // Station
-        case 3:
-            return STATIONARY;
-        // Jump
-        case 4:
-            return JUMPING;
-        default:
-            fprintf(stderr, "[ERROR] Received other values\n");
-            return STATIONARY;
+    // Fall
+    case 0:
+        return FALLING;
+    // Walk
+    case 1:
+        return WALKING;
+    // Run
+    case 2:
+        return RUNNING;
+    // Station
+    case 3:
+        return STATIONARY;
+    // Jump
+    case 4:
+        return JUMPING;
+    default:
+        fprintf(stderr, "[ERROR] Received other values\n");
+        return STATIONARY;
     }
     //
     // #if defined(DEBUG)
@@ -133,16 +133,16 @@ static ActivityState process_data(const FallsafeContext *context)
     // return rand() < RAND_MAX / 180 ? FALLING : STATIONARY;
 }
 
-static void send_thingsboardAccel(Vector3 data, double time_ms)
+static void send_thingsboardAccel(FallsafeContext *context, Vector3 data)
 {
-  // Send data to thingsboard
-  //mqtt_send_vector3(&data, (long long) time_ms);  
+    // Send data to thingsboard
+    mqtt_send_vector3(&data, (long long)context->unixTime);
 }
 
-static void send_thingsboardState(ActivityState state, double time_ms)
+static void send_thingsboardState(FallsafeContext *context, ActivityState state, double time_ms)
 {
-  // Send data to thingsboard
-  //mqtt_send_activity(state, (long long) time_ms);
+    // Send data to thingsboard
+    mqtt_send_activity(state, (long long)time_ms);
 }
 
 static void perform_task(FallsafeContext *context)
@@ -151,7 +151,7 @@ static void perform_task(FallsafeContext *context)
     // Gather the sensor data at current moment instant
     Vector3 acceleroData = gather_data(context);
 
-    send_thingsboardAccel(acceleroData, context->unixTime);
+    send_thingsboardAccel(context, acceleroData);
 
     // Check if queue is at the target length for processing
     if (context->acceleroDataset->length < queueTarget)
@@ -166,7 +166,7 @@ static void perform_task(FallsafeContext *context)
     // Pass the deqeueued chunk to ML and get the activity state
     ActivityState state = process_data(context);
     queue_dequeue(context->acceleroDataset, &data);
-    send_thingsboardState(state, context->unixTime);
+    send_thingsboardState(context, state, context->unixTime);
     // Show LED
     if (previousState != state)
     {
@@ -338,7 +338,7 @@ int main(int agc, char **argv)
     }
 
     context.classifier = classifier_new();
-    if(context.classifier == NULL)
+    if (context.classifier == NULL)
     {
         fprintf(stderr, "[ERROR] Unable to initialize model\n");
     }
@@ -363,6 +363,7 @@ int main(int agc, char **argv)
     classifier_destroy(context.classifier);
     setMap(0x0000, context.sensehatLEDMap, &context.sensehatfbfd);
     shShutdown(&context.sensehatfbfd, context.sensehatLEDMap);
+    mqtt_dispose();
     printf("[INFO] Program terminated\n");
     return 0;
 }

@@ -7,9 +7,9 @@
 static const char *addr = "129.126.163.157";
 static const char *port = "1883";
 static const char *topic = "v1/devices/me/telemetry";
-static char *accessToken = "5NpDeYwlNOwpLbhtPy1V";
+static char *accessToken = "dAWY0dhv2dx4LM1PE4sg";
 static struct mqtt_client mqttClient;
-static uint8_t sendBuf[2048];
+static uint8_t sendBuf[10240];
 static uint8_t receiveBuf[1024];
 static char *clientId = NULL;
 static uint8_t connectFlags = MQTT_CONNECT_CLEAN_SESSION;
@@ -25,12 +25,19 @@ void mqtt_exit(int status, int sockfd, pthread_t *client_daemon)
     exit(status);
 }
 
+void mqtt_dispose(void)
+{
+    if (sockfd != -1)
+        close(sockfd);
+    pthread_cancel(clientDaemon);
+}
+
 void *client_refresher(void *client)
 {
     while (1)
     {
         mqtt_sync((struct mqtt_client *)client);
-        usleep(1000000U);
+        usleep(500000U);
     }
     return NULL;
 }
@@ -77,7 +84,7 @@ void mqtt_setup_client(void)
 void mqtt_send_vector3(Vector3 *vector, long long time_ms)
 {
     char application_message[256];
-    snprintf(application_message, sizeof(application_message), "{\"ts\": %lld,\"values\": {\"x\": %lf, \"y\": %lf, \"z\": %lf}}", time_ms, vector->x, vector->y, vector->z);
+    snprintf(application_message, sizeof(application_message), "{\"x\": %lf, \"y\": %lf, \"z\": %lf}", vector->x, vector->y, vector->z);
     mqtt_publish(&mqttClient, topic, application_message, strlen(application_message), MQTT_PUBLISH_QOS_0);
     printf("Published: \n%s\n", application_message);
     if (mqttClient.error != MQTT_OK)
@@ -95,19 +102,19 @@ void mqtt_send_activity(ActivityState activity_state, long long time_ms)
     switch (activity_state)
     {
     case (FALLING):
-        snprintf(application_message, sizeof(application_message), "{\"ts\": %lld, \"values\": {\"Activity State\": %s}}", time_ms, "FALLING");
+        snprintf(application_message, sizeof(application_message), "{\"Activity State\": \"%s\"}", "FALLING");
         break;
     case (WALKING):
-        snprintf(application_message, sizeof(application_message), "{\"ts\": %lld, \"values\": {\"Activity State\": %s}}", time_ms, "WALKING");
+        snprintf(application_message, sizeof(application_message), "{\"Activity State\": \"%s\"}", "WALKING");
         break;
     case (RUNNING):
-        snprintf(application_message, sizeof(application_message), "{\"ts\": %lld, \"values\": {\"Activity State\": %s}}", time_ms, "RUNNING");
+        snprintf(application_message, sizeof(application_message), "{\"Activity State\": \"%s\"}", "RUNNING");
         break;
     case (JUMPING):
-        snprintf(application_message, sizeof(application_message), "{\"ts\": %lld, \"values\": {\"Activity State\": %s}}", time_ms, "JUMPING");
+        snprintf(application_message, sizeof(application_message), "{\"Activity State\": \"%s\"}", "JUMPING");
         break;
     case (STATIONARY):
-        snprintf(application_message, sizeof(application_message), "{\"ts\": %lld, \"values\": {\"Activity State\": %s}}", time_ms, "STATIONARY");
+        snprintf(application_message, sizeof(application_message), "{\"Activity State\": \"%s\"}", "STATIONARY");
         break;
     default:
         break;
