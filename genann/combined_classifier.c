@@ -41,10 +41,10 @@ int prediction(const double *output)
 
 void classifier_reinforce(Classifier c, double *sample, int value)
 {
-    int *label = {0, 0, 0, 0};
+    double label[] = {0, 0, 0, 0};
     label[value] = 1;
 
-    genann_train(c, sample, label, 5);
+    genann_train(c->cClassifier, sample, (double *)label, 5);
 }
 
 int classifier_predict(Classifier c, double *sample)
