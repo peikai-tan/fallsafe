@@ -16,7 +16,14 @@ Classifier classifier_new()
 
 void classifier_destroy(Classifier c)
 {
+    // save reinforced model first
+    genann_write(c->cClassifier, c->cC);
+
+    // Freeing memory
     genann_free(c->cClassifier);
+
+    // Closing file
+    fclose(c->cC);
 }
 
 int prediction(const double *output)
