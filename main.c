@@ -6,9 +6,7 @@
 #include "utils/time.h"
 #include "utils/mqtt-sender.h"
 
-#include "genann/classifier.h"
-
-#include "./lib/tensorflowlite/common.h"
+#include "genann/combined_classifier.h"
 
 #define DEBUG
 
@@ -28,7 +26,7 @@
 #define GatheringFrequency 30
 static bool continueProgram = true;
 static double dataGatherIntervalMS = 1000.0 / GatheringFrequency;
-static unsigned int updateIntervalMicroSeconds = 1000;
+static unsigned int updateIntervalMicroSeconds = 100;
 static size_t queueTarget = 60;
 
 typedef enum fallsafe_state

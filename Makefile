@@ -17,7 +17,7 @@ debug-main: bin/sensehat.o bin/mqtt.o bin/mqtt_pal.o bin/genann.o main.h.gch
 	-ltensorflowlite_c \
 	./bin/sensehat.o \
 	-I./lib/MQTT-C/include ./bin/mqtt.o ./bin/mqtt_pal.o \
-	./bin/genann.o ./genann/classifier.c \
+	./bin/genann.o ./genann/combined_classifier.c \
 	./common/*.c ./utils/*.c \
 	./main.c -o ./bin/fallsafe_debug
 
