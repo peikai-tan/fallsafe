@@ -1,6 +1,7 @@
-
 //
-// Sense Hat Unchained
+// Combination of Sense Hat Unchained drivers and customed drivers for FallSafe
+// Usage.
+// 
 // A simple set of C functions to initialize and
 // read data from the sensors on the Sense Hat
 //
@@ -33,26 +34,28 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
+// Any functions which are already fully written by the Sensehat Unchained
+// author will be indicated in function header. Else, its written by
+// students of FallSafe project.
 #include "sensehat.h"
-
 //#define DEBUG
-
 static int file_acc = -1;	   // accelerometer/gyro
-static int file_mag = -1;	   // magnetometer
-static int file_joystick = -1; // joystick
 static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen);
 static int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen);
-
-int mymillis()
-{
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	return (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000;
-}
 char name[256];
-//
-// Opens file system handles to the I2C devices
-//
+/*
+ * shInit() - Opens file system handles to the I2C devices
+ *
+ * @args1 : Channel of i2c, pi3 should be using 1.
+ * @args2 : Pointer to framebuffer file descriptor
+ *
+ * Setup all the sensor settings, open file descriptors and handles before reading and writing
+ * to/from sensors.
+ * 
+ * Return: Integer value if initialisation has succeeded without errors
+ * 1 - No error
+ * 0 - Error occured.
+ */
 int shInit(int iChannel, int *pfbfd)
 {
 	unsigned char ucTemp[32];
@@ -93,40 +96,6 @@ int shInit(int iChannel, int *pfbfd)
 #if defined(DEBUG)
 	printf("Aceel %d\n", file_acc);
 #endif
-	file_mag = open(filename, O_RDWR);
-	if (ioctl(file_mag, I2C_SLAVE, MAGN_ADDR) < 0)
-	{
-		fprintf(stderr, "Failed to acquire bus for magnetometer\n");
-		goto badexit;
-	}
-#if defined(DEBUG)
-	printf("Mag %d\n", file_mag);
-#endif
-	//	file_joystick = open(filename, O_RDWR);
-	//	if(file_joystick < 0)
-	//	{
-	//		fprintf(stderr, "Failed to open joystick bus \n");
-	//		goto badexit;
-	//	}
-	//  printf("Joystick  %d\n", file_joystick);
-	//
-	//  printf("errno: %d\n", errno);
-	//  int addr = 0xf2;
-	//	if(ioctl(file_joystick, I2C_SLAVE_FORCE, addr) < 0)
-	//	{
-	//		fprintf(stderr, "failed to acquire bus for joystick \n");
-	//    printf("errno: %d\n", errno);
-	//		goto badexit;
-	//	}
-	//  printf("This is after acquiring joystick\n");
-
-	// Init magnetometer
-	ucTemp[0] = 0x48; // output data rate/power mode
-	ucTemp[1] = 0x00; // default scale
-	ucTemp[2] = 0x00; // continuous conversion
-	ucTemp[3] = 0x08; // high performance mode
-	i2cWrite(file_mag, 0x20 + 0x80, ucTemp, 4);
-
 	// Init accelerometer/gyroscope
 	ucTemp[0] = 0x60; // 119hz accel
 	i2cWrite(file_acc, 0x20, ucTemp, 1);
@@ -136,9 +105,7 @@ int shInit(int iChannel, int *pfbfd)
 	// bits:        ODR_G2 | ODR_G1 | ODR_G0 | FS_G1 | FS_G0 | 0 | BW_G1 | BW_G0
 	// 0x28 = 14.9hz, 500dps
 	i2cWrite(file_acc, 0x10, ucTemp, 1); // gyro ctrl_reg1
-
 	return 1;
-
 	// problems opening the I2C handles/addresses
 badexit:
 	if (file_acc != -1)
@@ -146,42 +113,78 @@ badexit:
 		close(file_acc);
 		file_acc = -1;
 	}
-	if (file_mag != -1)
-	{
-		close(file_mag);
-		file_mag = -1;
-	}
-
-	if (file_joystick != -1)
-	{
-		close(file_joystick);
-		file_joystick = -1;
-	}
 	return 0;
-} /* shInit() */
-
-//
-// Set a single pixel on the 8x8 LED Array
-//
+}
+/**
+ * shSetPixel() - Set a pixel on the 8x8 sensehat matrix with preferred colour
+ * @arg1: Integer value of the pixel's column to set. X coordinate
+ * @arg2: Integer value of the pixel's row to set. Y coordinate
+ * @arg3: 16 bits of colour to set for the pixel
+ * @arg4: 0 or 1 value, if 1 set the pixel, else don't set.
+ * @arg5: Pointer to the map's head
+ * @arg6: Pointer to frame buffer file descriptor 
+ *
+ * This function takes in x and y coordinate system of the pixel to write.
+ * Technically, the pixel is in a 1D array starting from the top of the
+ * sensehat. Some formatting has be done to write the appropriate 1D index
+ * to write.
+ * 
+ * Return: Int value if the function has been successfully called.
+ * 
+ * 1 - Parameters are valid and successfully called.
+ * 0 - One of the parameters provided are invalid, function cannot be called. 
+ */
 int shSetPixel(int x, int y, uint16_t color, int bUpdate, uint16_t *map_headptr, int *pfbfd)
 {
+    /* Temporary variable to store the formatted 1D index of given x & y */
 	int i = 0;
-
+    /**
+     * Check if x and y are within range and the provided framebuffer 
+     * is valid. As each row has 8 pixel, 1D index can be calculated by
+     * multiplying 8 by the y and finally, adding x which is the offset from
+     * the first pixel of each row.
+     */
 	if (x >= 0 && x < 8 && y >= 0 && y < 8 && *pfbfd >= 0)
 	{
-		//printf("hello\n");
-		i = (y * 8) + x; // offset into array
-		if (bUpdate)
+		i = (y * 8) + x; 
+		if (bUpdate) /* if bUpdate is not 0, set the pixel's colour. */
 			map_headptr[i] = color;
 		return 1;
 	}
 	return 0;
-} /* shSetPixel() */
-
+}
+/**
+ * drawActivity() - Takes in a state enum and draws on the LED matrix.
+ * @arg1: Enumerator of the state, e.g. STATIONARY, WALKING, etc.
+ * @arg2: Pointer to the map's head
+ * @arg3: Pointer to frame buffer file descriptor 
+ *
+ * The main program will constantly collect accelerometer and predict the data
+ * by the model. It will then draw to the matrix as an output of the state.
+ * Draw S on matrix if state is stationary.
+ * Draw R on matrix if state is running.
+ * Draw W on matrix if state is walking.
+ * Draw U on matrix if state is unknown.
+ * Draw J on matrix if state is jumping.
+ *
+ * Return: An integer value to indicate if the drawActivity function has
+ * ran without errors. 
+ *
+ * 1 - No errors
+ * 0 - Error occured
+ */
 int drawActivity(ActivityState state, uint16_t *map_headptr, int *pfbfd)
 {
+    /* Counter for loop */
 	int i = 0;
-
+    /* 
+     * Depending on the state received and utilise a for loop to draw
+     * straight lines. Repetitively call shSetPixel to set the pixels on
+     * matrix.
+     * Return 1 if the drawing is successfully called.
+     * If the switch enters default case, invalid state must have been entered
+     * and return 0.
+     */ 
 	switch (state)
 	{
 	case FALLING:
@@ -256,192 +259,167 @@ int drawActivity(ActivityState state, uint16_t *map_headptr, int *pfbfd)
 		return 0;
 	}
 }
-
+/**
+ * setMap() - Set all the pixels in the 8x8 sensehat to a specific colour.
+ * Useful to wipe all pixels.
+ * 
+ * @args1: 16 bit colour representation to set to the entire sensehat matrix
+ * @args2: Pointer of the matrix map
+ * @args3: Pointer to framebuffer file descriptor
+ * 
+ * Helper function to set all pixels to a specific colour.
+ * 
+ * Return: Integer value if the function called without errors.
+ * 1 - No errors
+ * 0 - Error occured, probably invalid pointer for frame buffer.
+ */
 int setMap(uint16_t color, uint16_t *map, int *pfbfd)
 {
-	if (*pfbfd >= 0)
+	if (*pfbfd >= 0) /* If framebuffer file descriptor pointer is valid */
 	{
-		memset(map, color, FILESIZE);
+		memset(map, color, FILESIZE); /* Set all colours in the map */
 		return 1;
 	}
 	return 0;
 }
-
+/**
+ * shGetAccel() - Get accelerometer sensors via i2c.
+ *
+ * @args1: Pointer to the raw value of X provided by the sensor.
+ * @args2: Pointer to the raw value of Y provided by the sensor.
+ * @args3: Pointer to the raw value of Z provided by the sensor.
+ * 
+ * Provided by the sensehat unchained library. Allocate an unsigned char
+ * array as buffer for the data from the sensor. Read from address using
+ * i2c read and check if received all chars. Format the data and set back
+ * to output pointers.
+ *
+ * Return: Integer value if function called without errors.
+ * 1 - No errors.
+ * 0 - Error occured.
+ */
 int shGetAccel(int *Ax, int *Ay, int *Az)
 {
-	unsigned char ucTemp[8];
+    /* Temporary buffer of unsigned chars to store sensor values */
+	unsigned char ucTemp[8]; 
+    /* Value of received data */
 	int rc;
-
+    /**
+     * Read from sensors via i2c by providing file descriptor and
+     * address, buffer to store data in and how much to write in the buffer 
+     */
 	rc = i2cRead(file_acc, 0x28 + 0x80, ucTemp, 6);
+    /* If received full 6 unsigned char and format the data */
 	if (rc == 6)
 	{
 		int x, y, z;
-
 		x = ucTemp[0] + (ucTemp[1] << 8);
 		y = ucTemp[2] + (ucTemp[3] << 8);
 		z = ucTemp[4] + (ucTemp[5] << 8);
-		// fix the signed values
+		/* Fix the signed values */
 		if (x > 32767)
 			x -= 65536;
 		if (y > 32767)
 			y -= 65536;
 		if (z > 32767)
 			z -= 65536;
+        /* Write back the values as output */
 		*Ax = x;
 		*Ay = y;
 		*Az = z;
 		return 1;
 	}
 	return 0;
-} /* shGetAccel() */
-
-int shGet2GAccel(Vector3 *anglesArr)
+}
+/**
+ * shGet2GAccel() - Convert the raw accelerometer data to sensible data with 2G sensitivity
+ * 
+ * @args1 - Pointer to a Vector3 of accelerometer array 
+ *
+ * Based on sensitivty set initially on setup, we need to format the raw data based on the
+ * settings we have made. In the setup, we set to 2G sensitivity therefore we need to scale
+ * the data by twoG_LSB. The return value will be in milli-Gs, we divide again to get in G
+ * units. To match the open source fall data which was collected by python drivers, we
+ * need to negate the values of x and y to match theirs.
+ * 
+ * Return: Integer value to indicate if function has been called without errors.
+ * 1 - No errors
+ * 0 - Error occured
+ */
+int shGet2GAccel(Vector3 * accelArr)
 {
-	int x = anglesArr->x;
-	int y = anglesArr->y;
-	int z = anglesArr->z;
-
+    /* Declare & initialise 3 variables to store x,y,z values */
+	int x = accelArr->x;
+	int y = accelArr->y;
+	int z = accelArr->z;
+    /* Attempt to get the raw accelerometer data */
 	if (shGetAccel(&x, &y, &z))
 	{
-		anglesArr->x = -((double)(x * twoG_LSB) / 1000);
-		anglesArr->y = -((double)(y * twoG_LSB) / 1000);
-		anglesArr->z = (double)(z * twoG_LSB) / 1000;
-		return 1;
-	}
-	return 0;
-} /* shGet2GAccel() */
-
-int shGetGyro(int *gyroRates)
-{
-	unsigned char ucTemp[8];
-	int rc;
-
-	rc = i2cRead(file_acc, 0x18 + 0x80, ucTemp, 6);
-	if (rc == 6)
-	{
-		gyroRates[0] = (int16_t)(ucTemp[0] + (ucTemp[1] << 8));
-		gyroRates[1] = (int16_t)(ucTemp[2] + (ucTemp[3] << 8));
-		gyroRates[2] = (int16_t)(ucTemp[4] + (ucTemp[5] << 8));
-		return 1;
-	}
-	return 0;
-} /* shGetGyro() */
-
-int shGet500DPSComplementary(float *CFAnglesArr, int *rateGArr, float *anglesArr, int *startInt)
-{
-	if (shGetGyro(rateGArr))
-	{
-		*startInt = mymillis();
-		CFAnglesArr[0] = AA * (CFAnglesArr[0] + (float)rateGArr[0] * G_GAIN * 0.02f) + (1 - AA) * anglesArr[0];
-		CFAnglesArr[1] = AA * (CFAnglesArr[1] + (float)rateGArr[1] * G_GAIN * 0.02f) + (1 - AA) * anglesArr[1];
-		while (mymillis() - (*startInt) < (0.02 * 1000))
-			usleep(100);
+        /* Scale and convert from milli-Gs to Gs and negate to match python data */
+		accelArr->x = -((double)(x * twoG_LSB) / 1000);
+		accelArr->y = -((double)(y * twoG_LSB) / 1000);
+		accelArr->z = (double)(z * twoG_LSB) / 1000;
 		return 1;
 	}
 	return 0;
 }
-
-int shGet500DPSKalman(float *kalmanAngles, int *rateGArr, float *anglesArr, int *startInt, float *bias, float *XP, float *YP)
-{
-	float y, s = 0.0f;
-	float K_0, K_1 = 0.0f;
-	if (shGetGyro(rateGArr))
-	{
-		*startInt = mymillis();
-		kalmanAngles[0] += 0.02f * (((float)rateGArr[0] * G_GAIN) - bias[0]);
-		XP[0] += -0.02f * (XP[1] + XP[2]) + Q_ANGLE * 0.02f;
-		XP[1] += -0.02f * XP[3];
-		XP[2] += -0.02f * XP[3];
-		XP[3] += +Q_GYRO * 0.02f;
-		y = anglesArr[0] - kalmanAngles[0];
-		s = XP[0] + R_ANGLE;
-		K_0 = XP[0] / s;
-		K_1 = XP[2] / s;
-
-		kalmanAngles[0] += K_0 * y;
-		bias[0] += K_1 * y;
-		XP[0] -= K_0 * XP[0];
-		XP[1] -= K_0 * XP[1];
-		XP[2] -= K_1 * XP[0];
-		XP[3] -= K_1 * XP[1];
-
-		kalmanAngles[1] += 0.02f * (((float)rateGArr[1] * G_GAIN) - bias[1]);
-		YP[0] += -0.02f * (YP[1] + YP[2]) + Q_ANGLE * 0.02f;
-		YP[1] += -0.02f * YP[3];
-		YP[2] += -0.02f * YP[3];
-		YP[3] += +Q_GYRO * 0.02f;
-		y = anglesArr[1] - kalmanAngles[1];
-		s = YP[0] + R_ANGLE;
-		K_0 = YP[0] / s;
-		K_1 = YP[2] / s;
-
-		kalmanAngles[1] += K_0 * y;
-		bias[1] += K_1 * y;
-		YP[0] -= K_0 * YP[0];
-		YP[1] -= K_0 * YP[1];
-		YP[2] -= K_1 * YP[0];
-		YP[3] -= K_1 * YP[1];
-
-		while (mymillis() - (*startInt) < (0.02 * 1000))
-			usleep(100);
-
-		return 1;
-	}
-	return 0;
-}
-int shGetMagneto(int *Mx, int *My, int *Mz)
-{
-	unsigned char ucTemp[8];
-	int rc;
-	rc = i2cRead(file_mag, 0x28 + 0x80, ucTemp, 6);
-	if (rc == 6)
-	{
-		int x, y, z;
-		x = ucTemp[0] + (ucTemp[1] << 8);
-		y = ucTemp[2] + (ucTemp[3] << 8);
-		z = ucTemp[4] + (ucTemp[5] << 8);
-		// fix signed values
-		if (x > 32767)
-			x -= 65536;
-		if (y > 32767)
-			y -= 65536;
-		if (z > 32767)
-			z -= 65536;
-		*Mx = z;
-		*My = y;
-		*Mz = z;
-		return 1;
-	}
-	return 0;
-} /* shGetMagneto() */
-
+/**
+ * shShutDown() - Properly close all file descriptors when not in used for
+ * better resource management.
+ *
+ * @args1: Pointer to the framebuffer file descriptor
+ * @args2: Pointer to the 8x8 sensehat map array
+ *
+ * Sanitisation function to close all opened file descriptors and release
+ * files descriptors and resources back.
+ */
 void shShutdown(int *pfbfd, uint16_t *map)
 {
+    /**
+     * Check if the files descriptors are not closed, then close.
+     * Unmap the map address, and set all file descriptor to -1.
+     */
 	if (file_acc != -1)
 		close(file_acc);
-	if (file_mag != -1)
-		close(file_mag);
 	if (*pfbfd != 1)
 		close(*pfbfd);
-
 	if (munmap(map, FILESIZE) == -1)
 		perror("Error un-mapping the file");
-	file_acc = file_mag = -1;
-} /* shShutdown() */
-
+	file_acc = -1;
+}
+/**
+ * i2cRead() - Read from addresses of sensors via i2c
+ * @args1: File descriptor
+ * @args2: Address to read from
+ * @args3: Buffer to write sensor data to
+ * @args4: Number of unsigned chars (data) to write
+ * 
+ * Utilise I2C to read from sensors by first writing which address to read from
+ * and then read from the address.
+ * Written by sensehat unchained author.
+ * 
+ * Return: Integer value indicating if function called without errors
+ */
 static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen)
 {
+    /* Variable to store if the i2c read and write is successful */
 	int rc;
+    /* 
+     * Write the address to read by providing address to read  and file descriptor 
+     * and how much to read
+     */
 	rc = write(iHandle, &ucAddr, 1);
+    /* Debugging for joystick */
 	if (ucAddr == 0xf2)
 	{
 #if defined(DEBUG)
 		printf("joy stick i2c read: %d \n", rc);
 #endif // DEBUG
 	}
-
+    /* If writing of address to read from is successful */
 	if (rc == 1)
 	{
+        /* Attempt to read and store the data to buffer */
 		rc = read(iHandle, buf, iLen);
 #if defined(DEBUG)
 		printf("i2c read: %d \n", rc);
@@ -449,13 +427,30 @@ static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iL
 		printf("i2c buf: %d \n", buf[1]);
 #endif // DEBUG
 	}
-	return rc;
-} /* i2cRead() */
-
+	return rc; /* If successful, should return 1. Else, unsuccessful */
+}
+/**
+ * mapLEDFrameBuffer() - Map the entire framebuffer to given memory range
+ * 
+ * @args1 : Pointer to an array of uint16_t which is storing the LED map
+ * @args2 : Pointer to framebuffer file descriptor
+ * 
+ * To manipulate the LED matrix, we need to map the framebuffer to the map.
+ * 
+ * Return - Integer value to indicate if mapping has succeed
+ * 1 - Mapping succeeded
+ * 0 - Error occured
+ */
 int mapLEDFrameBuffer(uint16_t **map, int *pfbfd)
 {
+    /* 
+     * Map with the following settings, let kernel choose address to create
+     * mapping, pages can be read and written, share the map. Enter the 
+     * file descripter and 0 offset.
+     */
 	*map = mmap(NULL, FILESIZE, PROT_READ | PROT_WRITE, MAP_SHARED, *pfbfd, 0);
-	if (map == MAP_FAILED)
+	/* If mapping fail, remember to close file descriptor. */
+    if (map == MAP_FAILED)
 	{
 		close(*pfbfd);
 		perror("Error mapping the file");
@@ -463,14 +458,28 @@ int mapLEDFrameBuffer(uint16_t **map, int *pfbfd)
 	}
 	return 1;
 }
-
+/**
+ * i2cWrite() - Write to address via i2c
+ * 
+ * @args1: File descriptor to write from
+ * @args2: Address to write to
+ * @args3: Buffer to store the data to write from
+ * @args4: How much to write
+ * 
+ * Written by author of sensehat unchain
+ * Return - Integer value to indicate function call successful
+ * 1 - Succeed
+ * 0 - Error occured 
+ */
 int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen)
 {
+    /* Buffer to store what to write over */
 	unsigned char ucTemp[512];
-	int rc;
-
+	/* Variable to store result of writing */
+    int rc;
+    /* Invalid parameters to write */
 	if (iLen > 511 || iLen < 1 || buf == NULL)
-		return -1; // invalid write
+		return -1; 
 
 	ucTemp[0] = ucAddr; // send the register number first
 #if defined(DEBUG)
@@ -480,33 +489,6 @@ int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen)
 	rc = write(iHandle, ucTemp, iLen + 1);
 	return rc - 1;
 }
-void accelToAngle(float *accelAngles, float *accelRadians)
-{
-	accelAngles[0] = (float)((atan2(accelRadians[1], accelRadians[2]) + PI) * RAD_TO_DEG);
-	accelAngles[0] -= 180.0f;
-	accelAngles[1] = (float)((atan2(accelRadians[2], accelRadians[0]) + PI) * RAD_TO_DEG);
-	if (accelAngles[1] > 90.0f)
-		accelAngles[1] -= 270.0f;
-	else
-		accelAngles[1] += 90.0f;
-}
-
-/* i2cWrite() */
-
-unsigned char shReadJoystick(int *pfbfd)
-{
-	unsigned char ucBuf[2];
-	int rc = 0;
-	if (*pfbfd != -1)
-	{
-		rc = i2cRead(*pfbfd, 0xf2, ucBuf, 1);
-		if (rc == 1)
-			printf("Value in buffer: %d\n", ucBuf[0]);
-		return ucBuf[0];
-	}
-	return 0;
-}
-
 /*
  * Initialise joystick with input event buffer
  */

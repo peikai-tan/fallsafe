@@ -114,12 +114,6 @@ typedef struct
     char *status;
 } Joystick;
 
-int mymillis();
-
-//
-// Read the magnetometer values for x/y/z
-//
-int shGetMagneto(int *Mx, int *My, int *Mz);
 //
 // Set the pixel the given color. The display will flicker
 // if it's updated for each pixel change, so it's best
@@ -139,17 +133,12 @@ int shInit(int iChannel, int * pfbfd);
 // Frees resources and closes handles
 //
 void shShutdown(int * pfbfd, uint16_t * map);
-int shGetGyro(int * gyroRates);
 int shGetAccel(int *Ax, int *Ay, int *Az);
-int shGet2GAccel(Vector3 * anglesArr);
-int shGet500DPSComplementary(float * CFAnglesArr, int * rateGArr, float * anglesArr, int * intStart);
+int shGet2GAccel(Vector3 * accelArr);
 int mapLEDFrameBuffer(uint16_t **  map, int * pfbfd);
-void accelToAngle(float * accelAngles, float * accelRadians);
-unsigned char shReadJoystick(int * pfbfd);
 int initJoystick(int *fd);
 int readJoystick(int *fd, Joystick *joy);
 void checkJoystickDir(int evCode, Joystick *joy);
 void checkJoystickState(int evType, Joystick *joy);
-int shGet500DPSKalman(float * kalmanAngles, int * rateGArr, float * anglesArr, int * startInt, float * bias, float * XP, float * YP);
 
 #endif // _SENSEHAT_H_
