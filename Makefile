@@ -4,7 +4,7 @@ CFLAGS=-std=gnu99 -Wextra -Wall -Wno-unused-parameter -Wno-unused-variable -Wno-
 CFLAGS_STRICT=-std=c99 -Wextra -Wall -Werror -pedantic
 LIBS=-lm -lpthread
 
-default: bin/sensehat.o bin/mqtt.o bin/mqtt_pal.o bin/genann.o main.h.gch
+default: bin/mqtt.o bin/mqtt_pal.o bin/genann.o main.h.gch
 	gcc -O3 $(CFLAGS) $(LIBS) -lrt -lwiringPi \
 	./lib/sensehat/sensehat.c \
 	-I./lib/MQTT-C/include ./bin/mqtt.o ./bin/mqtt_pal.o \
@@ -12,7 +12,7 @@ default: bin/sensehat.o bin/mqtt.o bin/mqtt_pal.o bin/genann.o main.h.gch
 	./common/*.c ./utils/*.c \
 	./main.c -o ./bin/fallsafe
 
-debug-main: bin/sensehat.o bin/mqtt.o bin/mqtt_pal.o bin/genann.o main.h.gch
+debug-main: bin/mqtt.o bin/mqtt_pal.o bin/genann.o main.h.gch
 	gcc -g $(CFLAGS) $(LIBS) -lrt -lwiringPi \
 	-ltensorflowlite_c \
 	./lib/sensehat/sensehat.c \
