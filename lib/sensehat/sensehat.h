@@ -106,6 +106,7 @@ typedef enum
 
 } ActivityState;
 
+// Store joystick information
 typedef struct
 {
     JoystickDir dir;
