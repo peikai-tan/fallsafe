@@ -8,8 +8,6 @@
 
 #include "genann/combined_classifier.h"
 
-#define DEBUG
-
 /* Psuedo code:
  *
  * Check timer thingy
@@ -261,7 +259,7 @@ static void await_userinput(FallsafeContext *context)
                     context->state = INITIAL;
                     context->activityState = STATIONARY;
                     queue_destroy(context->acceleroDataset);
-                    context->acceleroDataset = queue_new(Vector3, queueTarget);
+                    context->acceleroDataset = queue_new(Vector3, queueTarget + 1);
                     setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
 
                     // Reinforced learning
@@ -352,6 +350,10 @@ void exit_handler(int signum)
 
 int main(int agc, char **argv)
 {
+#if defined(DEBUG)
+    puts("DEBUG MODE");
+#endif // DEBUG
+
     Classifier classifier;
 
     FallsafeContext context;
@@ -359,7 +361,7 @@ int main(int agc, char **argv)
     double currentTime;
     int toleranceTime = 0;
 
-    context.acceleroDataset = queue_new(Vector3, queueTarget * 1.25);
+    context.acceleroDataset = queue_new(Vector3, queueTarget + 1);
     context.acceleroDataChunk = (Vector3 *)malloc(sizeof(Vector3) * queueTarget * 3);
     context.unrolledDataChunk = (double *)malloc(sizeof(double) * queueTarget * 3);
     context.state = INITIAL;

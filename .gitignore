@@ -2,5 +2,6 @@
 *.out
 .vscode
 
+common/test-run
 bin/
 main.h.gch

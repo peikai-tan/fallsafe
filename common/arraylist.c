@@ -14,7 +14,7 @@
 
 static bool need_expand(ArrayList list)
 {
-    return (double)list->length / (double)list->_capacity > 0.75;
+    return list->length == list->_capacity;
 }
 
 static bool need_shrink(ArrayList list)

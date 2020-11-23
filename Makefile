@@ -19,7 +19,7 @@ debug-main: bin/sensehat.o bin/mqtt.o bin/mqtt_pal.o bin/genann.o main.h.gch
 	-I./lib/MQTT-C/include ./bin/mqtt.o ./bin/mqtt_pal.o \
 	./bin/genann.o ./genann/combined_classifier.c \
 	./common/*.c ./utils/*.c \
-	./main.c -o ./bin/fallsafe_debug
+	-D DEBUG ./main.c -o ./bin/fallsafe_debug
 
 test-main: debug-main
 	./bin/fallsafe_debug
@@ -44,7 +44,7 @@ main.h.gch:
 	gcc main.h -I./lib/MQTT-C/include
 
 debug-common:
-	gcc -g $(CFLAGS) $(LIBS) $(file) ./common/*.c -o ./common/test-run
+	gcc -g $(CFLAGS) $(LIBS) $(file) -D DEBUG ./common/*.c -o ./common/test-run
 
 test-arraylist: file=./test/arraylist_test.c
 test-arraylist: debug-common
