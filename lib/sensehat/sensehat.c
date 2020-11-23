@@ -295,6 +295,9 @@ int shGetAccel(int *Ax, int *Ay, int *Az)
 	return 0;
 } /* shGetAccel() */
 
+/*
+ * Get accelerometer data and format it with 2G sensitivity values
+ */
 int shGet2GAccel(Vector3 *anglesArr)
 {
 	int x = anglesArr->x;
