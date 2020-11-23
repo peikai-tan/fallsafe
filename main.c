@@ -223,21 +223,41 @@ static void check_perform_task(FallsafeContext *context)
     }
 }
 
+static void send_externalalert()
+{
+    FILE *curlProcess = popen("curl -sL https://script.google.com/macros/s/AKfycbyK12iJJ1lHnBSHM0xSgHlXY1KWQ5QLQJKqnUyOeawd50VvVG8/exec?email=qg.tan93@gmail.com", "w");
+    pclose(curlProcess);
+    puts("");
+}
+
 /**
  * If falling is detected, program state will changed to waiting user input to indicate whether it is an false positive.
  * If no input is detected after a certain period of time, an alert to external output will be triggered
 */
 static void await_userinput(FallsafeContext *context)
 {
+    static ActivityState selections[] = {WALKING, RUNNING, STATIONARY, UNKNOWN};
     static Joystick joystick;
     static int currentSelection = -1;
+    static bool sent = false;
+    static bool interacted = false;
+    static double timePassedMS = 0;
 
-    ActivityState selections[] = {WALKING, RUNNING, STATIONARY, UNKNOWN};
+    timePassedMS += context->deltaTime;
+
+    if (timePassedMS >= 5000 && !sent && !interacted)
+    {
+        send_externalalert();
+        printf("[INFO] Sent fallen alert email\n");
+        sent = true;
+        interacted = true;
+    }
 
     while (poll(&context->evpoll, 1, 0) > 0)
     {
         if (readJoystick(&context->joystickFB, &joystick))
         {
+            interacted = true;
             if (joystick.state == PRESSED)
             {
                 printf("[INFO] Joystick PRESSED direction: %s=====================================================\n", joystick.direction);
@@ -257,7 +277,9 @@ static void await_userinput(FallsafeContext *context)
                     queue_destroy(context->acceleroDataset);
                     context->acceleroDataset = queue_new(Vector3, queueTarget + 1);
                     setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
-
+                    timePassedMS = 0;
+                    interacted = false;
+                    sent = false;
                     if (currentSelection == 3)
                     {
                         printf("[INFO] Ignoring unknown activity\n");
