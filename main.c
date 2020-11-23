@@ -23,19 +23,26 @@
 
 // Configurations
 // TODO: allow CLI args to overide these
+// Define constant for frequency in Hz
 #define GatheringFrequency 30
+// Global variables for program-wide settings
 static bool continueProgram = true;
 static double dataGatherIntervalMS = 1000.0 / GatheringFrequency;
 static unsigned int updateIntervalMicroSeconds = 100;
 static size_t queueTarget = 60;
 
+// Enum far various activity states
 typedef enum fallsafe_state
 {
+    // Initial data gathering state
     INITIAL,
+    // Activity detection state
     NORMAL,
+    // Fallen state awaiting user input
     FALLEN
 } FallsafeState;
 
+// FallSafe 'class' to store and pass values locall
 typedef struct fallsafe_context
 {
     double applicationStartTime;
@@ -71,6 +78,9 @@ static Vector3 gather_data(const FallsafeContext *context)
     return acceleroData;
 }
 
+/**
+ * Place data chunk into an array and pass data into model
+ */
 static ActivityState process_data(const FallsafeContext *context)
 {
     ActivityState output;
@@ -90,25 +100,7 @@ static ActivityState process_data(const FallsafeContext *context)
         context->unrolledDataChunk[i + queueTarget * 2] = context->acceleroDataChunk[i].z;
     }
 
-    // #if defined(DEBUG)
-
-    //     if (context->unixTime - context->applicationStartTime > 5000)
-    //     {
-    //         for (size_t i = 0; i < queueTarget; i++)
-    //         {
-    //             printf("%d ", (int)i);
-    //             vector3_print(&context->acceleroDataChunk[i]);
-    //         }
-
-    //         for (size_t i = 0; i < queueTarget * 3; i++)
-    //         {
-    //             printf("%d %lf\n", (int)i, context->unrolledDataChunk[i]);
-    //         }
-    //         getchar();
-    //     }
-
-    // #endif // DEBUG
-
+    // Store predicted state
     int state = classifier_predict(context->classifier, context->unrolledDataChunk);
 
     switch (state)
@@ -134,12 +126,14 @@ static ActivityState process_data(const FallsafeContext *context)
     }
 }
 
+// Send accelerometer data to thingsboard
 static void send_thingsboardAccel(FallsafeContext *context, Vector3 data)
 {
     // Send data to thingsboard
     mqtt_send_vector3(&data, (long long)context->unixTime);
 }
 
+// Send predicted state to thingsboard
 static void send_thingsboardState(FallsafeContext *context, ActivityState state, double time_ms)
 {
     // Send data to thingsboard
@@ -181,6 +175,9 @@ static void check_process_data(FallsafeContext *context)
     }
 }
 
+/**
+ * Trigger data  gathering and sending of data to Thingsboard
+ */
 static void perform_task(FallsafeContext *context)
 {
     // Gather the sensor data at current moment instant
