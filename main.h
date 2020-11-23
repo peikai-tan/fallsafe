@@ -4,5 +4,3 @@
 #include <signal.h>
 #include <wiringPi.h>
 #include <poll.h>
-
-#include "lib/sensehat/sensehat.h"

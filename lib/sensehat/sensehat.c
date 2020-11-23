@@ -241,6 +241,17 @@ int drawActivity(ActivityState state, uint16_t *map_headptr, int *pfbfd)
 		shSetPixel(5, 6, OLIVE, 1, map_headptr, pfbfd);
 		shSetPixel(1, 7, OLIVE, 1, map_headptr, pfbfd);
 		return 1;
+	case UNKNOWN:
+		for (i = 1; i < 7; ++i)
+		{
+			shSetPixel(2, i, DIM_BLUE, 1, map_headptr, pfbfd);
+			shSetPixel(5, i, DIM_BLUE, 1, map_headptr, pfbfd);
+		}
+		for (i = 3; i < 5; i++)
+		{
+			shSetPixel(i, 6, DIM_BLUE, 1, map_headptr, pfbfd);
+		}
+		return 1;
 	default:
 		return 0;
 	}

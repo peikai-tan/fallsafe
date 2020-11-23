@@ -1,5 +1,7 @@
 #include "main.h"
 
+#include "lib/sensehat/sensehat.h"
+
 #include "common/queue.h"
 #include "common/vector3.h"
 
@@ -233,7 +235,7 @@ static void await_userinput(FallsafeContext *context)
     static Joystick joystick;
     static int currentSelection = -1;
 
-    ActivityState selections[3] = {WALKING, RUNNING, STATIONARY};
+    ActivityState selections[] = {WALKING, RUNNING, STATIONARY, UNKNOWN};
 
     while (poll(&context->evpoll, 1, 0) > 0)
     {
@@ -253,31 +255,35 @@ static void await_userinput(FallsafeContext *context)
                 switch (joystick.dir)
                 {
                 case ENTER:
-                    if (currentSelection == -1)
-                        break;
-
                     context->state = INITIAL;
                     context->activityState = STATIONARY;
                     queue_destroy(context->acceleroDataset);
                     context->acceleroDataset = queue_new(Vector3, queueTarget + 1);
                     setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
 
+                    if (currentSelection == 3)
+                    {
+                        printf("[INFO] Ignoring unknown activity\n");
+                        break;
+                    }
+
                     // Reinforced learning
                     classifier_reinforce(context->classifier, context->unrolledDataChunk, currentSelection + 1);
                     printf("[INFO] Reinforced with %d\n", currentSelection + 1);
+                    currentSelection = -1;
 
                     break;
 
                 case UP:
                 case RIGHT:
-                    currentSelection = (currentSelection + 1) % 3;
+                    currentSelection = (currentSelection + 1) % 4;
                     setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
                     drawActivity(selections[currentSelection], context->sensehatLEDMap, &context->sensehatfbfd);
                     break;
 
                 case DOWN:
                 case LEFT:
-                    currentSelection = currentSelection - 1 < 0 ? 2 : (currentSelection - 1);
+                    currentSelection = currentSelection - 1 < 0 ? 3 : (currentSelection - 1);
                     setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
                     drawActivity(selections[currentSelection], context->sensehatLEDMap, &context->sensehatfbfd);
                     break;
