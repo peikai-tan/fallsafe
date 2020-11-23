@@ -75,6 +75,7 @@
 #define PURPLE 0x780F
 #define ORANGE 0xFD20
 #define OLIVE 0x7BE0
+#define DIM_BLUE 0x1111
 // Joystick enum based on event codes
 typedef enum
 {
@@ -98,7 +99,8 @@ typedef enum
   WALKING = 1,
   RUNNING = 2,
   JUMPING = 3,
-  STATIONARY = 4
+  STATIONARY = 4,
+  UNKNOWN = 5
 
 } ActivityState;
 

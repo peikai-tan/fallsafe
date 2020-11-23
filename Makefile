@@ -6,7 +6,7 @@ LIBS=-lm -lpthread
 
 default: bin/sensehat.o bin/mqtt.o bin/mqtt_pal.o bin/genann.o main.h.gch
 	gcc -O3 $(CFLAGS) $(LIBS) -lrt -lwiringPi \
-	./bin/sensehat.o \
+	./lib/sensehat/sensehat.c \
 	-I./lib/MQTT-C/include ./bin/mqtt.o ./bin/mqtt_pal.o \
 	./bin/genann.o ./genann/combined_classifier.c \
 	./common/*.c ./utils/*.c \
@@ -15,7 +15,7 @@ default: bin/sensehat.o bin/mqtt.o bin/mqtt_pal.o bin/genann.o main.h.gch
 debug-main: bin/sensehat.o bin/mqtt.o bin/mqtt_pal.o bin/genann.o main.h.gch
 	gcc -g $(CFLAGS) $(LIBS) -lrt -lwiringPi \
 	-ltensorflowlite_c \
-	./bin/sensehat.o \
+	./lib/sensehat/sensehat.c \
 	-I./lib/MQTT-C/include ./bin/mqtt.o ./bin/mqtt_pal.o \
 	./bin/genann.o ./genann/combined_classifier.c \
 	./common/*.c ./utils/*.c \
@@ -27,9 +27,6 @@ test-main: debug-main
 clean:
 	rm main.h.gch
 	rm -rf ./bin/*.o
-
-bin/sensehat.o: 
-	gcc $(CFLAGS) $(LIBS) -lrt -c ./lib/sensehat/sensehat.c -o ./bin/sensehat.o
 
 bin/mqtt.o:
 	gcc $(CFLAGS) $(LIBS) -lrt -I./lib/MQTT-C/include -c ./lib/MQTT-C/src/mqtt.c -o ./bin/mqtt.o
