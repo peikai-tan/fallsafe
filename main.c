@@ -124,14 +124,18 @@ static ActivityState process_data(const FallsafeContext *context)
     }
 }
 
-// Send accelerometer data to thingsboard
+/*
+ * Send accelerometer data to thingsboard
+ */
 static void send_thingsboardAccel(FallsafeContext *context, Vector3 data)
 {
     // Send data to thingsboard
     mqtt_send_vector3(&data, (long long)context->unixTime);
 }
 
-// Send predicted state to thingsboard
+/*
+ * Send predicted state to thingsboard
+ */
 static void send_thingsboardState(FallsafeContext *context, ActivityState state, double time_ms)
 {
     // Send data to thingsboard
