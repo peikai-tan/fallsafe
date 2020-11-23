@@ -507,8 +507,12 @@ unsigned char shReadJoystick(int *pfbfd)
 	return 0;
 }
 
+/*
+ * Initialise joystick with input event buffer
+ */
 int initJoystick(int *fd)
 {
+    // Open joystick event buffer
 	*fd = open(JOYSTICK_FILE, O_RDONLY);
 	if (*fd == -1)
 	{
@@ -516,6 +520,7 @@ int initJoystick(int *fd)
 		close(*fd);
 		return -1;
 	}
+    // I/O control with event buffer
 	int retVal = ioctl(*fd, EVIOCGNAME(sizeof(name)), name);
 	if (retVal == -1)
 	{
@@ -525,8 +530,12 @@ int initJoystick(int *fd)
 	}
 	return 0;
 }
+/*
+ * Get joystick information from input event buffer
+ */
 int readJoystick(int *fd, Joystick *joy)
 {
+    // Init code size
 	int codeSize = -1;
 	struct input_event ev[64];
 	codeSize = read(*fd, ev, sizeof(struct input_event) * 64);
@@ -537,6 +546,7 @@ int readJoystick(int *fd, Joystick *joy)
 		return 0;
 	}
 
+    // Get values frcom event buffer
 	for (size_t i = 0; i < codeSize / sizeof(struct input_event); i++)
 	{
 		if (ev->type != EV_KEY)
@@ -549,6 +559,9 @@ int readJoystick(int *fd, Joystick *joy)
 	return 0;
 }
 
+/*
+ * Determine joystick direction
+ */ 
 void checkJoystickDir(int evCode, Joystick *joy)
 {
 	switch (evCode)
@@ -576,6 +589,9 @@ void checkJoystickDir(int evCode, Joystick *joy)
 	}
 }
 
+/*
+ * Determine joystick state
+ */
 void checkJoystickState(int evType, Joystick *joy)
 {
 	switch (evType)

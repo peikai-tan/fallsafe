@@ -126,20 +126,27 @@ static ActivityState process_data(const FallsafeContext *context)
     }
 }
 
-// Send accelerometer data to thingsboard
+/*
+ * Send accelerometer data to thingsboard
+ */
 static void send_thingsboardAccel(FallsafeContext *context, Vector3 data)
 {
     // Send data to thingsboard
     mqtt_send_vector3(&data, (long long)context->unixTime);
 }
 
-// Send predicted state to thingsboard
+/*
+ * Send predicted state to thingsboard
+ */
 static void send_thingsboardState(FallsafeContext *context, ActivityState state, double time_ms)
 {
     // Send data to thingsboard
     mqtt_send_activity(state, (long long)time_ms);
 }
 
+/*
+ * Determine actions after checking data
+ */
 static void check_process_data(FallsafeContext *context)
 {
     static double interval = 1000;
@@ -197,6 +204,7 @@ static void perform_task(FallsafeContext *context)
     Vector3 data;
     queue_dequeue(context->acceleroDataset, &data);
 
+    // Pass data for processing
     check_process_data(context);
     drawActivity(context->activityState, context->sensehatLEDMap, &context->sensehatfbfd);
 }
@@ -316,6 +324,9 @@ static void await_userinput(FallsafeContext *context)
     }
 }
 
+/* 
+ * Set pixel for LED Array
+ */
 static void update_rolling_led(FallsafeContext *context)
 {
     static const double interval = 1000.0 / 15;
