@@ -54,7 +54,7 @@ char name[256];
  * 
  * Return: Integer value if initialisation has succeeded without errors
  * 1 - No error
- * 0 - Error occured.
+ * 0 - Error occurred.
  */
 int shInit(int iChannel, int *pfbfd)
 {
@@ -171,7 +171,7 @@ int shSetPixel(int x, int y, uint16_t color, int bUpdate, uint16_t *map_headptr,
  * ran without errors. 
  *
  * 1 - No errors
- * 0 - Error occured
+ * 0 - Error occurred
  */
 int drawActivity(ActivityState state, uint16_t *map_headptr, int *pfbfd)
 {
@@ -271,7 +271,7 @@ int drawActivity(ActivityState state, uint16_t *map_headptr, int *pfbfd)
  * 
  * Return: Integer value if the function called without errors.
  * 1 - No errors
- * 0 - Error occured, probably invalid pointer for frame buffer.
+ * 0 - Error occurred, probably invalid pointer for frame buffer.
  */
 int setMap(uint16_t color, uint16_t *map, int *pfbfd)
 {
@@ -296,7 +296,7 @@ int setMap(uint16_t color, uint16_t *map, int *pfbfd)
  *
  * Return: Integer value if function called without errors.
  * 1 - No errors.
- * 0 - Error occured.
+ * 0 - Error occurred.
  */
 int shGetAccel(int *Ax, int *Ay, int *Az)
 {
@@ -344,7 +344,7 @@ int shGetAccel(int *Ax, int *Ay, int *Az)
  * 
  * Return: Integer value to indicate if function has been called without errors.
  * 1 - No errors
- * 0 - Error occured
+ * 0 - Error occurred
  */
 int shGet2GAccel(Vector3 * accelArr)
 {
@@ -439,7 +439,7 @@ static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iL
  * 
  * Return - Integer value to indicate if mapping has succeed
  * 1 - Mapping succeeded
- * 0 - Error occured
+ * 0 - Error occurred
  */
 int mapLEDFrameBuffer(uint16_t **map, int *pfbfd)
 {
@@ -469,7 +469,7 @@ int mapLEDFrameBuffer(uint16_t **map, int *pfbfd)
  * Written by author of sensehat unchain
  * Return - Integer value to indicate function call successful
  * 1 - Succeed
- * 0 - Error occured 
+ * 0 - Error occurred 
  */
 int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen)
 {
@@ -489,8 +489,17 @@ int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen)
 	rc = write(iHandle, ucTemp, iLen + 1);
 	return rc - 1;
 }
-/*
- * Initialise joystick with input event buffer
+/**
+ * initJoystick() - Initialise joystick with input event buffer
+ *
+ * @args1: File descriptor to write to
+ *
+ * Initialises the joystick input event by opening the file to read and to 
+ * gain I/O control
+ *
+ * Return - Integer value to indicate function call successfull
+ * 0 - Succeed
+ * -1 - Error occurred
  */
 int initJoystick(int *fd)
 {
@@ -512,8 +521,17 @@ int initJoystick(int *fd)
 	}
 	return 0;
 }
-/*
- * Get joystick information from input event buffer
+/**
+ * readJoystick() - Get joystick information from input event buffer
+ *
+ * @args1: File descriptor to read from
+ * @args2: Joystick object to state and direction of the joystick to
+ *
+ * Reads joystick state from input event buffer via input event struct
+ *
+ * Return - Integer value to indicate function call successfull
+ * 1 - Successfull
+ * 0 - Error occurred
  */
 int readJoystick(int *fd, Joystick *joy)
 {
@@ -528,7 +546,7 @@ int readJoystick(int *fd, Joystick *joy)
 		return 0;
 	}
 
-    // Get values frcom event buffer
+    // Get values from event buffer
 	for (size_t i = 0; i < codeSize / sizeof(struct input_event); i++)
 	{
 		if (ev->type != EV_KEY)
@@ -541,8 +559,15 @@ int readJoystick(int *fd, Joystick *joy)
 	return 0;
 }
 
-/*
- * Determine joystick direction
+/**
+ * checkJoystickDir() - Determine joystick direction
+ *
+ * @args1: Event code of joystick in input event to determine joystick direction
+ * @args2: Joystick struct
+ *
+ * Helper function to get direction and store in joystick struct
+ * The directions are:
+ * UP, DOWN, LEFT, RIGHT, ENTER
  */ 
 void checkJoystickDir(int evCode, Joystick *joy)
 {
@@ -571,8 +596,16 @@ void checkJoystickDir(int evCode, Joystick *joy)
 	}
 }
 
-/*
- * Determine joystick state
+/**
+ * checkJoystickState() - Determine joystick state
+ * 
+ * @args1: Event type of joystick
+ * @args2: Joystick struct
+ *
+ * Helper function to interpret event type with three states:
+ * RELEASE: When the joystick is being released
+ * PRESSED: When the joystick is being pressed
+ * HOLD: When the joystick is being held in place
  */
 void checkJoystickState(int evType, Joystick *joy)
 {
