@@ -46,8 +46,8 @@ char name[256];
 /*
  * shInit() - Opens file system handles to the I2C devices
  *
- * @args1 : Channel of i2c, pi3 should be using 1.
- * @args2 : Pointer to framebuffer file descriptor
+ * @iChannel: Channel of i2c, pi3 should be using 1.
+ * @pfbfd: Pointer to framebuffer file descriptor
  *
  * Setup all the sensor settings, open file descriptors and handles before reading and writing
  * to/from sensors.
@@ -117,12 +117,12 @@ badexit:
 }
 /**
  * shSetPixel() - Set a pixel on the 8x8 sensehat matrix with preferred colour
- * @arg1: Integer value of the pixel's column to set. X coordinate
- * @arg2: Integer value of the pixel's row to set. Y coordinate
- * @arg3: 16 bits of colour to set for the pixel
- * @arg4: 0 or 1 value, if 1 set the pixel, else don't set.
- * @arg5: Pointer to the map's head
- * @arg6: Pointer to frame buffer file descriptor 
+ * @x: Integer value of the pixel's column to set. X coordinate
+ * @y: Integer value of the pixel's row to set. Y coordinate
+ * @color: 16 bits of colour to set for the pixel
+ * @bUpdate: 0 or 1 value, if 1 set the pixel, else don't set.
+ * @map_headptr: Pointer to the map's head
+ * @pfbfd: Pointer to frame buffer file descriptor 
  *
  * This function takes in x and y coordinate system of the pixel to write.
  * Technically, the pixel is in a 1D array starting from the top of the
@@ -155,9 +155,9 @@ int shSetPixel(int x, int y, uint16_t color, int bUpdate, uint16_t *map_headptr,
 }
 /**
  * drawActivity() - Takes in a state enum and draws on the LED matrix.
- * @arg1: Enumerator of the state, e.g. STATIONARY, WALKING, etc.
- * @arg2: Pointer to the map's head
- * @arg3: Pointer to frame buffer file descriptor 
+ * @state: Enumerator of the state, e.g. STATIONARY, WALKING, etc.
+ * @map_headptr: Pointer to the map's head
+ * @pfbfd: Pointer to frame buffer file descriptor 
  *
  * The main program will constantly collect accelerometer and predict the data
  * by the model. It will then draw to the matrix as an output of the state.
@@ -263,9 +263,9 @@ int drawActivity(ActivityState state, uint16_t *map_headptr, int *pfbfd)
  * setMap() - Set all the pixels in the 8x8 sensehat to a specific colour.
  * Useful to wipe all pixels.
  * 
- * @args1: 16 bit colour representation to set to the entire sensehat matrix
- * @args2: Pointer of the matrix map
- * @args3: Pointer to framebuffer file descriptor
+ * @color: 16 bit colour representation to set to the entire sensehat matrix
+ * @map: Pointer of the matrix map
+ * @pfbfd: Pointer to framebuffer file descriptor
  * 
  * Helper function to set all pixels to a specific colour.
  * 
@@ -285,9 +285,9 @@ int setMap(uint16_t color, uint16_t *map, int *pfbfd)
 /**
  * shGetAccel() - Get accelerometer sensors via i2c.
  *
- * @args1: Pointer to the raw value of X provided by the sensor.
- * @args2: Pointer to the raw value of Y provided by the sensor.
- * @args3: Pointer to the raw value of Z provided by the sensor.
+ * @Ax: Pointer to the raw value of X provided by the sensor.
+ * @Ay: Pointer to the raw value of Y provided by the sensor.
+ * @Az: Pointer to the raw value of Z provided by the sensor.
  * 
  * Provided by the sensehat unchained library. Allocate an unsigned char
  * array as buffer for the data from the sensor. Read from address using
@@ -334,7 +334,7 @@ int shGetAccel(int *Ax, int *Ay, int *Az)
 /**
  * shGet2GAccel() - Convert the raw accelerometer data to sensible data with 2G sensitivity
  * 
- * @args1 - Pointer to a Vector3 of accelerometer array 
+ * @accelArr: Pointer to a Vector3 of accelerometer array 
  *
  * Based on sensitivty set initially on setup, we need to format the raw data based on the
  * settings we have made. In the setup, we set to 2G sensitivity therefore we need to scale
@@ -367,8 +367,8 @@ int shGet2GAccel(Vector3 * accelArr)
  * shShutDown() - Properly close all file descriptors when not in used for
  * better resource management.
  *
- * @args1: Pointer to the framebuffer file descriptor
- * @args2: Pointer to the 8x8 sensehat map array
+ * @pfbfd: Pointer to the framebuffer file descriptor
+ * @map: Pointer to the 8x8 sensehat map array
  *
  * Sanitisation function to close all opened file descriptors and release
  * files descriptors and resources back.
@@ -389,10 +389,10 @@ void shShutdown(int *pfbfd, uint16_t *map)
 }
 /**
  * i2cRead() - Read from addresses of sensors via i2c
- * @args1: File descriptor
- * @args2: Address to read from
- * @args3: Buffer to write sensor data to
- * @args4: Number of unsigned chars (data) to write
+ * @iHandle: File descriptor
+ * @ucAddr: Address to read from
+ * @buf: Buffer to write sensor data to
+ * @iLen: Number of unsigned chars (data) to write
  * 
  * Utilise I2C to read from sensors by first writing which address to read from
  * and then read from the address.
@@ -432,8 +432,8 @@ static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iL
 /**
  * mapLEDFrameBuffer() - Map the entire framebuffer to given memory range
  * 
- * @args1 : Pointer to an array of uint16_t which is storing the LED map
- * @args2 : Pointer to framebuffer file descriptor
+ * @map: Pointer to an array of uint16_t which is storing the LED map
+ * @pfbfd: Pointer to framebuffer file descriptor
  * 
  * To manipulate the LED matrix, we need to map the framebuffer to the map.
  * 
@@ -461,10 +461,10 @@ int mapLEDFrameBuffer(uint16_t **map, int *pfbfd)
 /**
  * i2cWrite() - Write to address via i2c
  * 
- * @args1: File descriptor to write from
- * @args2: Address to write to
- * @args3: Buffer to store the data to write from
- * @args4: How much to write
+ * @iHandle: File descriptor to write from
+ * @ucAddr: Address to write to
+ * @buf: Buffer to store the data to write from
+ * @iLen: How much to write
  * 
  * Written by author of sensehat unchain
  * Return - Integer value to indicate function call successful
@@ -492,7 +492,7 @@ int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen)
 /**
  * initJoystick() - Initialise joystick with input event buffer
  *
- * @args1: File descriptor to write to
+ * @fd: File descriptor to write to
  *
  * Initialises the joystick input event by opening the file to read and to 
  * gain I/O control
@@ -524,8 +524,8 @@ int initJoystick(int *fd)
 /**
  * readJoystick() - Get joystick information from input event buffer
  *
- * @args1: File descriptor to read from
- * @args2: Joystick object to state and direction of the joystick to
+ * @fd: File descriptor to read from
+ * @joy: Joystick object to state and direction of the joystick to
  *
  * Reads joystick state from input event buffer via input event struct
  *
@@ -562,8 +562,8 @@ int readJoystick(int *fd, Joystick *joy)
 /**
  * checkJoystickDir() - Determine joystick direction
  *
- * @args1: Event code of joystick in input event to determine joystick direction
- * @args2: Joystick struct
+ * @evCode: Event code of joystick in input event to determine joystick direction
+ * @joy: Joystick struct
  *
  * Helper function to get direction and store in joystick struct
  * The directions are:
@@ -599,8 +599,8 @@ void checkJoystickDir(int evCode, Joystick *joy)
 /**
  * checkJoystickState() - Determine joystick state
  * 
- * @args1: Event type of joystick
- * @args2: Joystick struct
+ * @evType: Event type of joystick
+ * @joy: Joystick struct
  *
  * Helper function to interpret event type with three states:
  * RELEASE: When the joystick is being released
