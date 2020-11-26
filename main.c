@@ -59,6 +59,10 @@ typedef struct fallsafe_context
     FallsafeState state;
     Classifier classifier;
     ActivityState activityState;
+    char *mqttAccessToken;
+    char *emailAddress;
+    bool enableLED;
+    double processingIntervalMS;
 } FallsafeContext;
 
 /**
