@@ -1,14 +1,36 @@
-//
-// Combination of Sense Hat Unchained drivers and customed drivers for FallSafe
-// Usage.
-// 
-// A simple set of C functions to initialize and
-// read data from the sensors on the Sense Hat
+// This file contains the function definition to
+// initialize and read data from the sensors on
+// the Sense Hat.
 //
 // These functions are not meant to be comprehensive
 // but merely to be a simple example of using
 // standard Linux file system drivers to talk to
 // I2C devices.
+//
+// Ng Cheuk Fung and Edwin has added several function to support
+// the formatting of accelerometer sensor data, event listener
+// to read joystick inputs and setting SenseHat LED matrix.
+// The file only contains necessary functions required for the FallSafe
+// fall detection program. Therefore, it contains partial implementation
+// from the original library.
+//
+// Functions written and provided by Larry Bank (author of library)
+// shInit()
+// shGetAccel()
+// i2cRead()
+// i2cWrite()
+//
+// Functions written and modified by Ng Cheuk Fung and Edwin Tang
+// shSetPixel()
+// drawActivity()
+// setMap()
+// shGet2GAccel()
+// shShutdown()
+// mapLEDFrameBuffer()
+// initJoystick()
+// readJoystick()
+// checkJoystickDir()
+// checkJoystickState()
 //
 // The Sense Hat consists of the following:
 // 8x8 LED array mapped to a microcontroller at 0x46
@@ -33,17 +55,13 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-//
-// Any functions which are already fully written by the Sensehat Unchained
-// author will be indicated in function header. Else, its written by
-// students of FallSafe project.
 #include "sensehat.h"
 //#define DEBUG
 static int file_acc = -1;	   // accelerometer/gyro
 static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen);
 static int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen);
 char name[256];
-/*
+/**
  * shInit() - Opens file system handles to the I2C devices
  *
  * @iChannel: Channel of i2c, pi3 should be using 1.
@@ -102,8 +120,10 @@ int shInit(int iChannel, int *pfbfd)
 	ucTemp[0] = 0x38; // enable gyro on all axes
 	i2cWrite(file_acc, 0x1e, ucTemp, 1);
 	ucTemp[0] = 0x28; // data rate + full scale + bw selection
-	// bits:        ODR_G2 | ODR_G1 | ODR_G0 | FS_G1 | FS_G0 | 0 | BW_G1 | BW_G0
-	// 0x28 = 14.9hz, 500dps
+	/*
+	 * bits:        ODR_G2 | ODR_G1 | ODR_G0 | FS_G1 | FS_G0 | 0 | BW_G1 | BW_G0
+	 * 0x28 = 14.9hz, 500dps
+	 */
 	i2cWrite(file_acc, 0x10, ucTemp, 1); // gyro ctrl_reg1
 	return 1;
 	// problems opening the I2C handles/addresses
@@ -115,6 +135,7 @@ badexit:
 	}
 	return 0;
 }
+
 /**
  * shSetPixel() - Set a pixel on the 8x8 sensehat matrix with preferred colour
  * @x: Integer value of the pixel's column to set. X coordinate
@@ -136,9 +157,8 @@ badexit:
  */
 int shSetPixel(int x, int y, uint16_t color, int bUpdate, uint16_t *map_headptr, int *pfbfd)
 {
-    /* Temporary variable to store the formatted 1D index of given x & y */
-	int i = 0;
-    /**
+	int i = 0; // Temporary variable to store the formatted 1D index of given x & y
+    /*
      * Check if x and y are within range and the provided framebuffer 
      * is valid. As each row has 8 pixel, 1D index can be calculated by
      * multiplying 8 by the y and finally, adding x which is the offset from
@@ -147,12 +167,13 @@ int shSetPixel(int x, int y, uint16_t color, int bUpdate, uint16_t *map_headptr,
 	if (x >= 0 && x < 8 && y >= 0 && y < 8 && *pfbfd >= 0)
 	{
 		i = (y * 8) + x; 
-		if (bUpdate) /* if bUpdate is not 0, set the pixel's colour. */
+		if (bUpdate) /** if bUpdate is not 0, set the pixel's colour. */
 			map_headptr[i] = color;
 		return 1;
 	}
 	return 0;
 }
+
 /**
  * drawActivity() - Takes in a state enum and draws on the LED matrix.
  * @state: Enumerator of the state, e.g. STATIONARY, WALKING, etc.
@@ -175,9 +196,8 @@ int shSetPixel(int x, int y, uint16_t color, int bUpdate, uint16_t *map_headptr,
  */
 int drawActivity(ActivityState state, uint16_t *map_headptr, int *pfbfd)
 {
-    /* Counter for loop */
-	int i = 0;
-    /* 
+	int i = 0; // Counter for loop
+    /*
      * Depending on the state received and utilise a for loop to draw
      * straight lines. Repetitively call shSetPixel to set the pixels on
      * matrix.
@@ -259,6 +279,7 @@ int drawActivity(ActivityState state, uint16_t *map_headptr, int *pfbfd)
 		return 0;
 	}
 }
+
 /**
  * setMap() - Set all the pixels in the 8x8 sensehat to a specific colour.
  * Useful to wipe all pixels.
@@ -282,6 +303,7 @@ int setMap(uint16_t color, uint16_t *map, int *pfbfd)
 	}
 	return 0;
 }
+
 /**
  * shGetAccel() - Get accelerometer sensors via i2c.
  *
@@ -289,7 +311,7 @@ int setMap(uint16_t color, uint16_t *map, int *pfbfd)
  * @Ay: Pointer to the raw value of Y provided by the sensor.
  * @Az: Pointer to the raw value of Z provided by the sensor.
  * 
- * Provided by the sensehat unchained library. Allocate an unsigned char
+ * Provided by the SenseHat unchained library. Allocate an unsigned char
  * array as buffer for the data from the sensor. Read from address using
  * i2c read and check if received all chars. Format the data and set back
  * to output pointers.
@@ -331,6 +353,7 @@ int shGetAccel(int *Ax, int *Ay, int *Az)
 	}
 	return 0;
 }
+
 /**
  * shGet2GAccel() - Convert the raw accelerometer data to sensible data with 2G sensitivity
  * 
@@ -363,6 +386,7 @@ int shGet2GAccel(Vector3 * accelArr)
 	}
 	return 0;
 }
+
 /**
  * shShutDown() - Properly close all file descriptors when not in used for
  * better resource management.
@@ -387,6 +411,7 @@ void shShutdown(int *pfbfd, uint16_t *map)
 		perror("Error un-mapping the file");
 	file_acc = -1;
 }
+
 /**
  * i2cRead() - Read from addresses of sensors via i2c
  * @iHandle: File descriptor
@@ -396,30 +421,34 @@ void shShutdown(int *pfbfd, uint16_t *map)
  * 
  * Utilise I2C to read from sensors by first writing which address to read from
  * and then read from the address.
- * Written by sensehat unchained author.
+ * Written by SenseHat unchained author.
  * 
  * Return: Integer value indicating if function called without errors
  */
 static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen)
 {
-    /* Variable to store if the i2c read and write is successful */
+    /**
+     * Variable to store if the i2c read and write is successful
+     */
 	int rc;
-    /* 
+    /**
      * Write the address to read by providing address to read  and file descriptor 
      * and how much to read
      */
 	rc = write(iHandle, &ucAddr, 1);
-    /* Debugging for joystick */
+    /**
+     * Debugging for joystick
+     */
 	if (ucAddr == 0xf2)
 	{
 #if defined(DEBUG)
 		printf("joy stick i2c read: %d \n", rc);
 #endif // DEBUG
 	}
-    /* If writing of address to read from is successful */
+    /** If writing of address to read from is successful */
 	if (rc == 1)
 	{
-        /* Attempt to read and store the data to buffer */
+        /** Attempt to read and store the data to buffer */
 		rc = read(iHandle, buf, iLen);
 #if defined(DEBUG)
 		printf("i2c read: %d \n", rc);
@@ -427,8 +456,10 @@ static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iL
 		printf("i2c buf: %d \n", buf[1]);
 #endif // DEBUG
 	}
-	return rc; /* If successful, should return 1. Else, unsuccessful */
+    /** If successful, should return 1. Else, unsuccessful */
+	return rc;
 }
+
 /**
  * mapLEDFrameBuffer() - Map the entire framebuffer to given memory range
  * 
@@ -443,13 +474,13 @@ static int i2cRead(int iHandle, unsigned char ucAddr, unsigned char *buf, int iL
  */
 int mapLEDFrameBuffer(uint16_t **map, int *pfbfd)
 {
-    /* 
+    /**
      * Map with the following settings, let kernel choose address to create
      * mapping, pages can be read and written, share the map. Enter the 
-     * file descripter and 0 offset.
+     * file descriptor and 0 offset.
      */
 	*map = mmap(NULL, FILESIZE, PROT_READ | PROT_WRITE, MAP_SHARED, *pfbfd, 0);
-	/* If mapping fail, remember to close file descriptor. */
+	/** If mapping fail, remember to close file descriptor. */
     if (map == MAP_FAILED)
 	{
 		close(*pfbfd);
@@ -458,6 +489,7 @@ int mapLEDFrameBuffer(uint16_t **map, int *pfbfd)
 	}
 	return 1;
 }
+
 /**
  * i2cWrite() - Write to address via i2c
  * 
@@ -489,6 +521,7 @@ int i2cWrite(int iHandle, unsigned char ucAddr, unsigned char *buf, int iLen)
 	rc = write(iHandle, ucTemp, iLen + 1);
 	return rc - 1;
 }
+
 /**
  * initJoystick() - Initialise joystick with input event buffer
  *
@@ -521,6 +554,7 @@ int initJoystick(int *fd)
 	}
 	return 0;
 }
+
 /**
  * readJoystick() - Get joystick information from input event buffer
  *
@@ -529,8 +563,8 @@ int initJoystick(int *fd)
  *
  * Reads joystick state from input event buffer via input event struct
  *
- * Return - Integer value to indicate function call successfull
- * 1 - Successfull
+ * Return - Integer value to indicate function call successful
+ * 1 - Successful
  * 0 - Error occurred
  */
 int readJoystick(int *fd, Joystick *joy)
