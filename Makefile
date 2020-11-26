@@ -100,6 +100,10 @@ test-array2d: file=./test/array2d_test.c
 test-array2d: debug-common
 	./common/test-run
 
+test-spin:
+	gcc -std=gnu99 -O3 ./test/spin_test.c -o ./bin/spin_test
+	./bin/spin_test $(threads)
+
 # Machine learning training model generation util
 genannCSV: 
 	gcc $(CFLAGS_STRICT) ./genann/genannCSV.c ./genann/genann.c ./utils/timer/timer.c ./common/arraylist.c -lm -o ML
