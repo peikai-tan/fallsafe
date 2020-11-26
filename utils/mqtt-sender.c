@@ -7,7 +7,7 @@
 static const char *addr = "129.126.163.157";
 static const char *port = "1883";
 static const char *topic = "v1/devices/me/telemetry";
-static char *accessToken;
+static char *accessToken = NULL;
 static struct mqtt_client mqttClient;
 static uint8_t sendBuf[10240];
 static uint8_t receiveBuf[1024];
@@ -84,6 +84,11 @@ void mqtt_setup_client(char *access_token)
 
 void mqtt_send_vector3(Vector3 *vector, long long time_ms)
 {
+    if (accessToken == NULL)
+    {
+        return;
+    }
+
     char application_message[256];
     snprintf(application_message, sizeof(application_message), "{\"x\": %lf, \"y\": %lf, \"z\": %lf}", vector->x, vector->y, vector->z);
     mqtt_publish(&mqttClient, topic, application_message, strlen(application_message), MQTT_PUBLISH_QOS_0);
@@ -97,6 +102,11 @@ void mqtt_send_vector3(Vector3 *vector, long long time_ms)
 
 void mqtt_send_activity(ActivityState activity_state, long long time_ms)
 {
+    if (accessToken == NULL)
+    {
+        return;
+    }
+
     char application_message[256] = {0};
     switch (activity_state)
     {
