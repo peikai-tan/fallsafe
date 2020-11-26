@@ -101,7 +101,7 @@ test-array2d: debug-common
 	./common/test-run
 
 test-spin:
-	gcc -std=gnu99 -O3 ./test/spin_test.c -o ./bin/spin_test
+	gcc -std=gnu99 -lpthread -O3 ./test/spin_test.c -o ./bin/spin_test
 	./bin/spin_test $(threads)
 
 # Machine learning training model generation util
