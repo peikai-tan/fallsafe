@@ -7,7 +7,7 @@
 static const char *addr = "129.126.163.157";
 static const char *port = "1883";
 static const char *topic = "v1/devices/me/telemetry";
-static char *accessToken = "dAWY0dhv2dx4LM1PE4sg";
+static char *accessToken;
 static struct mqtt_client mqttClient;
 static uint8_t sendBuf[10240];
 static uint8_t receiveBuf[1024];
@@ -65,8 +65,9 @@ int mqtt_set_token(const char *access_token)
         return 1;
 }
 
-void mqtt_setup_client(void)
+void mqtt_setup_client(char *access_token)
 {
+    accessToken = access_token;
     mqtt_init(&mqttClient, sockfd, sendBuf, sizeof(sendBuf), receiveBuf, sizeof(receiveBuf), publish_callback);
     mqtt_connect(&mqttClient, clientId, NULL, NULL, 0, accessToken, NULL, connectFlags, 30);
     if (mqttClient.error != MQTT_OK)

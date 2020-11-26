@@ -4,17 +4,17 @@
 #include <pthread.h>
 #include <mqtt.h>
 
-int mqtt_set_token(const char * access_token);
+int mqtt_set_token(const char *access_token);
 
-void mqtt_exit(int status, int sockfd, pthread_t * client_daemon);
+void mqtt_exit(int status, int sockfd, pthread_t *client_daemon);
 
-void * client_referesher(void * client);
+void *client_referesher(void *client);
 
-void publish_callback(void ** unused, struct mqtt_response_publish * published);
+void publish_callback(void **unused, struct mqtt_response_publish *published);
 
 void mqtt_open_socket(void);
 
-void mqtt_setup_client(void);
+void mqtt_setup_client(char *access_token);
 
 void mqtt_dispose(void);
 

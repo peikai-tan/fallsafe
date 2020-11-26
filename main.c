@@ -416,6 +416,7 @@ int main(int agc, char **argv)
     context.state = INITIAL;
     context.evpoll.events = POLLIN;
     context.emailAddress = "qg.tan93@gmail.com";
+    context.mqttAccessToken = "dAWY0dhv2dx4LM1PE4sg";
 
     // Set up programming termination handler
     signal(SIGINT, exit_handler);
@@ -424,7 +425,7 @@ int main(int agc, char **argv)
 
     // Set up MQTT Wrapper
     mqtt_open_socket();
-    mqtt_setup_client();
+    mqtt_setup_client(context.mqttAccessToken);
 
     // Set up sensehat sensors
     if (shInit(1, &context.sensehatfbfd) == 0)
