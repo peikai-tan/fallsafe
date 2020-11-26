@@ -24,6 +24,7 @@ TARGETS=\
 	./genann/combined_classifier.c \
 	./common/*.c \
 	./utils/*.c \
+	./configuration.c \
 	./main.c 
 
 # Full build with optimisation and precompilation

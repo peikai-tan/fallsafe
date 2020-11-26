@@ -1,4 +1,5 @@
 #include "main.h"
+#include "configuration.h"
 
 #include "lib/sensehat/sensehat.h"
 
@@ -237,7 +238,7 @@ static void check_perform_task(FallsafeContext *context)
 
 static void send_externalalert(FallsafeContext *context)
 {
-    if (strlen(context->emailAddress) == 0)
+    if (context->emailAddress == NULL)
     {
         printf("[Email Sending] No Email Provided\n");
         return;
@@ -397,12 +398,13 @@ void exit_handler(int signum)
     continueProgram = false;
 }
 
-int main(int agc, char **argv)
+int main(int argc, char **argv)
 {
 #if defined(DEBUG)
     puts("DEBUG MODE");
 #endif // DEBUG
 
+    struct configuration config = parse_command_line(argc, argv);
     Classifier classifier;
 
     FallsafeContext context;
