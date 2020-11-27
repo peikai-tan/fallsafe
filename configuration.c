@@ -37,8 +37,12 @@ parse_command_line(int argc, char **argv)
             result.processingIntervalMS = strtod(optarg, NULL);
             break;
         case 'h': /* Show a simple help message showing these configurable options */
-                  //TODO
-            printf("TODO: help message\n");
+            puts("-e Email recipant for the fall alert, no email sending if not supplied\n"
+                 "-a MQTT Thingsboard access token, default to our teams's Thingsboard if not supplied\n"
+                 "-n Disables MQTT Thingsboard\n"
+                 "-t Data processing interval in milliseconds, defaults to 1000\n"
+                 "-l 0 to disable LED to save power, defaults to 1\n"
+                 "-h Prints this help message");
             exit(0);
             break;
         case '?':
@@ -46,9 +50,9 @@ parse_command_line(int argc, char **argv)
             break;
         }
     }
-    char *tokenType = result.mqttAccessToken == DefaultMQTTAccessToken 
-        ? "(Using Team 18 Default Token)" 
-        : "";
+    char *tokenType = result.mqttAccessToken == DefaultMQTTAccessToken
+                          ? "(Using Team 18 Default Token)"
+                          : "";
     printf("[Configuration] Email: %s\n", result.emailAddress);
     printf("[Configuration] MQTT Token: %s %s\n", result.mqttAccessToken, tokenType);
     printf("[Configuration] LED: %d\n", result.enableLED);
