@@ -43,7 +43,7 @@ typedef enum fallsafe_state
     FALLEN
 } FallsafeState;
 
-// FallSafe 'class' to store and pass values locall
+// FallSafe 'class' to store and pass values locally
 typedef struct fallsafe_context
 {
     double applicationStartTime;
@@ -67,12 +67,19 @@ typedef struct fallsafe_context
 } FallsafeContext;
 
 /**
- * Read data from accelerometer and push to dataset queue 
+ * gather_data() - Read data from accelerometer and push to dataset queue 
+ * @context: FallsafeContext class that contains program-wide variables
+ *
+ * Gets data from accelerometer and store in program-wide context class
+ *
+ * Return: Vector3 data after it has been succesfully read from the sensor
 */
 static Vector3 gather_data(const FallsafeContext *context)
 {
     Vector3 acceleroData;
+    // Get accelerometer data from sensehat and store into vector 3
     shGet2GAccel(&acceleroData);
+    // Enqueue vector 3 data into fallsafe class
     queue_enqueue(context->acceleroDataset, &acceleroData);
 
 #if defined(DEBUG)
@@ -84,21 +91,29 @@ static Vector3 gather_data(const FallsafeContext *context)
 }
 
 /**
- * Place data chunk into an array and pass data into model
+ * process_data() -  Place data chunk into an array and pass data into model
+ * @context: FallsafeContext class that contains program-wide variables
+ *
+ * Unroll accelerometer data into an array and pass into classifier function.
+ *
+ * Return: ActivityState to display corresponding alphabet on the LED matrix
  */
 static ActivityState process_data(const FallsafeContext *context)
 {
     // ML processing
     queue_peekRange(context->acceleroDataset, queueTarget, (void **)&context->acceleroDataChunk);
-    // Unrolling data
+    // Unrolling data:
+    // x values
     for (size_t i = 0; i < queueTarget; i++)
     {
         context->unrolledDataChunk[i] = context->acceleroDataChunk[i].x;
     }
+    // y values
     for (size_t i = 0; i < queueTarget; i++)
     {
         context->unrolledDataChunk[i + queueTarget] = context->acceleroDataChunk[i].y;
     }
+    // z values
     for (size_t i = 0; i < queueTarget; i++)
     {
         context->unrolledDataChunk[i + queueTarget * 2] = context->acceleroDataChunk[i].z;
@@ -107,6 +122,7 @@ static ActivityState process_data(const FallsafeContext *context)
     // Store predicted state
     int state = classifier_predict(context->classifier, context->unrolledDataChunk);
 
+    // Convert state from classifier into program state
     switch (state)
     {
     // Fall
@@ -130,8 +146,12 @@ static ActivityState process_data(const FallsafeContext *context)
     }
 }
 
-/*
- * Send accelerometer data to thingsboard
+/**
+ * send_thingsboardAccel() - Send accelerometer data to thingsboard
+ * @context: FallsafeContext class that contains program-wide variables
+ * @data: Vector3 accelerometer value
+ *
+ * Calls mqtt function to send vector 3 data to thingsboard
  */
 static void send_thingsboardAccel(FallsafeContext *context, Vector3 data)
 {
@@ -139,8 +159,13 @@ static void send_thingsboardAccel(FallsafeContext *context, Vector3 data)
     mqtt_send_vector3(&data, (long long)context->unixTime);
 }
 
-/*
- * Send predicted state to thingsboard
+/** 
+ * send_thingsboardState() - Send predicted state to thingsboard
+ * @context: FallsafeContext class that contains program-wide variables
+ * @state: ActivityState that contains the current predicted activity
+ * @time_ms: Current time in Unix offset
+ *
+ * Send predicted activity state and time in milliseconds
  */
 static void send_thingsboardState(FallsafeContext *context, ActivityState state)
 {
@@ -148,26 +173,33 @@ static void send_thingsboardState(FallsafeContext *context, ActivityState state)
     mqtt_send_activity(state, (long long)context->unixTime);
 }
 
-/*
- * Determine actions after checking data
+/**
+ * check_process_data() - Determine actions after checking data
+ * @context: FallsafeContext class that contains program-wide variables
+ *
+ * Trigger specific actions according to result of data check.
+ * This does not trigger if it has not collected enough data on first start.
  */
 static void check_process_data(FallsafeContext *context)
 {
     static double timepassed = 0;
     static ActivityState previousState;
 
+    // Count time with interval
     timepassed += context->actualInterval;
 
+    // Controls data checking
     if (timepassed < context->processingIntervalMS)
     {
         return;
     }
 
+    // Reset timepassed counter
     timepassed = 0;
 
     // Check and perform ML data processing
-
     ActivityState state = process_data(context);
+    // Store predicted state into context
     context->activityState = state;
     send_thingsboardState(context, state);
     printf("Proccessed State: %d ================================================\n", state);
@@ -186,13 +218,18 @@ static void check_process_data(FallsafeContext *context)
 }
 
 /**
- * Trigger data  gathering and sending of data to Thingsboard
+ * perform_task() - Trigger data gathering and sending of data to Thingsboard
+ * @context: FallsafeContext class that contains program-wide variables
+ *
+ * Triggers data collection from accelerometer and send it to thingsboard
+ * If queue has reached maximum size, dequeue 1 set of data
  */
 static void perform_task(FallsafeContext *context)
 {
-    // Gather the sensor data at current moment instant
+    // Gather the sensor data at current moment 
     Vector3 acceleroData = gather_data(context);
 
+    // Send accelerometer data to thingsboard
     send_thingsboardAccel(context, acceleroData);
 
     // Check if queue is at the target length for processing
@@ -213,7 +250,11 @@ static void perform_task(FallsafeContext *context)
 }
 
 /**
- * To runs every update to check if it is time to gather data and process them
+ * check_perform_task() - To runs every update to check if it is time to 
+ * gather data and process them
+ * @context: FallsafeContext class that contains program-wide variables
+ *
+ * Determine time interval for data gathering and processing
 */
 static void check_perform_task(FallsafeContext *context)
 {
@@ -234,6 +275,14 @@ static void check_perform_task(FallsafeContext *context)
     }
 }
 
+/**
+ * send_externalalert() - Sends an email to the specified target email
+ * when a fall has been detected with no user input
+ * @context: FallsafeContext class that contains program-wide variables
+ * 
+ * Function sends an email to email in context via a curl get request to Google
+ * API
+ */
 static void send_externalalert(FallsafeContext *context)
 {
     if (context->emailAddress == NULL)
@@ -243,16 +292,25 @@ static void send_externalalert(FallsafeContext *context)
     }
     char endPoint[256];
     char outputBuffer[256];
+    // Places email address into post request and store into endpoint
     sprintf(endPoint, "curl -sL https://script.google.com/macros/s/AKfycbzbGoq2XFMekzfR9OmpScNKFZ91G-CENr1Np6yWnljyPKCLjJDh/exec?email=%s", context->emailAddress);
+    // Opens a process to execute curl command
     FILE *curlProcess = popen(endPoint, "r");
+    // Reads http response
     fscanf(curlProcess, "%255s", outputBuffer);
+    // Close process
     pclose(curlProcess);
     printf("[Email Sending] Recipient: %s Status: %s\n", context->emailAddress, outputBuffer);
 }
 
 /**
- * If falling is detected, program state will changed to waiting user input to indicate whether it is an false positive.
- * If no input is detected after a certain period of time, an alert to external output will be triggered
+ * await_userinput() - Triggers when falling has been detected 
+ * @context: FallsafeContext class that contains program-wide variables
+ *
+ * If falling is detected, program state will changed to waiting 
+ * user input to indicate whether it is an false positive.
+ * If no input is detected after a certain period of time, 
+ * an alert to external output will be triggered
 */
 static void await_userinput(FallsafeContext *context)
 {
@@ -265,6 +323,7 @@ static void await_userinput(FallsafeContext *context)
 
     timePassedMS += context->deltaTime;
 
+    // Triggers email sending after specified time 
     if (timePassedMS >= 5000 && !sent && !interacted)
     {
         send_externalalert(context);
@@ -272,6 +331,7 @@ static void await_userinput(FallsafeContext *context)
         interacted = true;
     }
 
+    // Waits for user input 
     while (poll(&context->evpoll, 1, 0) > 0)
     {
         if (readJoystick(&context->joystickFB, &joystick))
@@ -335,8 +395,11 @@ static void await_userinput(FallsafeContext *context)
     }
 }
 
-/* 
- * Set pixel for LED Array
+/**
+ * update_rolling_led() - Set pixel for LED Array
+ * @context: FallsafeContext class that contains program-wide variables
+ * 
+ * Spawns red-lit leds and animates it around the border of the LED matrix.
  */
 static void update_rolling_led(FallsafeContext *context)
 {
@@ -366,7 +429,11 @@ static void update_rolling_led(FallsafeContext *context)
 }
 
 /**
- * Main update loop
+ * update() - Main update loop
+ * @context: FallsafeContext class that contains program-wide variables
+ * 
+ * Starter function that triggers main parts of the program depending on the
+ * state of the program.
 */
 static void update(FallsafeContext *context)
 {
@@ -387,7 +454,10 @@ static void update(FallsafeContext *context)
 }
 
 /**
- * Handles CTRL+C to gracefully exit program
+ * exit_handler() - Handles CTRL+C to gracefully exit program
+ * @signum - Signal interrupt value
+ *
+ * Controls behaviour of CTRL+C
 */
 void exit_handler(int signum)
 {
