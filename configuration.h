@@ -11,6 +11,6 @@ struct configuration
     double processingIntervalMS;
 };
 
-struct configuration parse_command_line(int argc, char **argv)
+struct configuration parse_command_line(int argc, char **argv);
 
 #endif // CONFIGURATION_H

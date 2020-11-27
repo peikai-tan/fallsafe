@@ -1,8 +1,9 @@
 #include <stdio.h>
-#include "posix_sockets.h"
-#include "mqtt-sender.h"
 #include <unistd.h>
 #include <stdlib.h>
+
+#include "posix_sockets.h"
+#include "mqtt-sender.h"
 
 static const char *addr = "129.126.163.157";
 static const char *port = "1883";
@@ -27,6 +28,10 @@ void mqtt_exit(int status, int sockfd, pthread_t *client_daemon)
 
 void mqtt_dispose(void)
 {
+    if (accessToken == NULL)
+    {
+        return;
+    }
     if (sockfd != -1)
         close(sockfd);
     pthread_cancel(clientDaemon);
@@ -44,7 +49,7 @@ void *client_refresher(void *client)
 
 void publish_callback(void **unused, struct mqtt_response_publish *published)
 {
-    printf("Publish response: %s", (char *)published->application_message);
+    printf("[MQTT] Publish response: %s", (char *)published->application_message);
 }
 
 void mqtt_open_socket(void)
@@ -68,6 +73,11 @@ int mqtt_set_token(const char *access_token)
 void mqtt_setup_client(char *access_token)
 {
     accessToken = access_token;
+    if (accessToken == NULL)
+    {
+        printf("[MQTT] NOT ENABLED, no access token provided\n");
+        return;
+    }
     mqtt_init(&mqttClient, sockfd, sendBuf, sizeof(sendBuf), receiveBuf, sizeof(receiveBuf), publish_callback);
     mqtt_connect(&mqttClient, clientId, NULL, NULL, 0, accessToken, NULL, connectFlags, 30);
     if (mqttClient.error != MQTT_OK)

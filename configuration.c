@@ -1,5 +1,6 @@
-#include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 #include "configuration.h"
 
 /* Process command line arguments to configure the program configurations if there are any */
@@ -9,7 +10,7 @@ struct configuration parse_command_line(int argc, char **argv)
     result.emailAddress = NULL;
     result.mqttAccessToken = NULL;
     result.enableLED = true;
-    result.processingIntervalMS = 1000.0 / 30;
+    result.processingIntervalMS = 1000.0;
 
     int opt;
     while ((opt = getopt(argc, argv, ":e:a:l:t:h")) != -1)
@@ -38,9 +39,9 @@ struct configuration parse_command_line(int argc, char **argv)
             break;
         }
     }
-    printf("Email: %s\n", result.emailAddress);
-    printf("Token: %s\n", result.mqttAccessToken);
-    printf("LED: %d\n", result.enableLED);
-    printf("Interval: %lf ms\n", result.processingIntervalMS);
+    printf("[Configuration] Email: %s\n", result.emailAddress);
+    printf("[Configuration] Token: %s\n", result.mqttAccessToken);
+    printf("[Configuration] LED: %d\n", result.enableLED);
+    printf("[Configuration] Interval: %lf ms\n", result.processingIntervalMS);
     return result;
 }

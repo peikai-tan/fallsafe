@@ -154,13 +154,12 @@ static void send_thingsboardState(FallsafeContext *context, ActivityState state,
  */
 static void check_process_data(FallsafeContext *context)
 {
-    static double interval = 1000;
     static double timepassed = 0;
     static ActivityState previousState;
 
     timepassed += context->actualInterval;
 
-    if (timepassed < interval)
+    if (timepassed < context->processingIntervalMS)
     {
         return;
     }
@@ -249,7 +248,7 @@ static void send_externalalert(FallsafeContext *context)
     FILE *curlProcess = popen(endPoint, "w");
     fscanf(curlProcess, "%255s", outputBuffer);
     pclose(curlProcess);
-    printf("[Email Sending] %s\n", outputBuffer);
+    printf("[Email Sending] Recipient: %s Status: %s\n", context->emailAddress, outputBuffer);
 }
 
 /**
@@ -269,8 +268,7 @@ static void await_userinput(FallsafeContext *context)
 
     if (timePassedMS >= 5000 && !sent && !interacted)
     {
-        send_externalalert();
-        printf("[INFO] Sent fallen alert email\n");
+        send_externalalert(context);
         sent = true;
         interacted = true;
     }
@@ -417,10 +415,11 @@ int main(int argc, char **argv)
     context.unrolledDataChunk = (double *)malloc(sizeof(double) * queueTarget * 3);
     context.state = INITIAL;
     context.evpoll.events = POLLIN;
-    context.emailAddress = "qg.tan93@gmail.com";
-    context.mqttAccessToken = "dAWY0dhv2dx4LM1PE4sg";
+    context.emailAddress = config.emailAddress;
+    context.mqttAccessToken = config.mqttAccessToken;
+    context.processingIntervalMS = config.processingIntervalMS;
 
-    // Set up programming termination handler
+    // Set up program termination handler
     signal(SIGINT, exit_handler);
     // Set up wiring pi
     wiringPiSetupSys();

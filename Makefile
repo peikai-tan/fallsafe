@@ -44,13 +44,14 @@ debug-main: $(PREBUILDS)
 	-D DEBUG -o ./bin/fallsafe_debug
 
 # Shorthand to debug build and run
+test-main: t=1000
 test-main: debug-main
-	./bin/fallsafe_debug
+	./bin/fallsafe_debug -t $(t)
 
 # Raw clean build without all the precompilations
 # Takes around 8.5 seconds for all compiles on Raspbian PI 3B+ OS Buster 
 clean-build: clean
-	gcc -O3 \
+	gcc -O3 $(CFLAGS)\
 	-lm -lpthread -lrt -lwiringPi \
 	./genann/genann.c \
 	-I ./lib/MQTT-C/include ./lib/MQTT-C/src/mqtt.c ./lib/MQTT-C/src/mqtt_pal.c \
