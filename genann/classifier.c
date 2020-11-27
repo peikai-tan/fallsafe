@@ -22,6 +22,7 @@ void classifier_destroy(Classifier c)
 {
     genann_free(c->fClassifier);
     genann_free(c->aClassifier);
+    free(c);
 }
 
 int prediction(const double *output)
