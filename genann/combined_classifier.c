@@ -23,6 +23,7 @@ void classifier_destroy(Classifier c)
 
     // Freeing memory
     genann_free(c->cClassifier);
+    free(c);
 }
 
 int prediction(const double *output)

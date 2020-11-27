@@ -72,6 +72,9 @@ typedef struct fallsafe_context
 static Vector3 gather_data(const FallsafeContext *context)
 {
     Vector3 acceleroData;
+    acceleroData.x = 0;
+    acceleroData.y = 0;
+    acceleroData.z = 0;
     shGet2GAccel(&acceleroData);
     queue_enqueue(context->acceleroDataset, &acceleroData);
 
