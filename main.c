@@ -244,8 +244,8 @@ static void send_externalalert(FallsafeContext *context)
     }
     char endPoint[256];
     char outputBuffer[256];
-    sprintf(endPoint, "curl -sL https://script.google.com/macros/s/AKfycbyK12iJJ1lHnBSHM0xSgHlXY1KWQ5QLQJKqnUyOeawd50VvVG8/exec?email=%s", context->emailAddress);
-    FILE *curlProcess = popen(endPoint, "w");
+    sprintf(endPoint, "curl -sL https://script.google.com/macros/s/AKfycbzbGoq2XFMekzfR9OmpScNKFZ91G-CENr1Np6yWnljyPKCLjJDh/exec?email=%s", context->emailAddress);
+    FILE *curlProcess = popen(endPoint, "r");
     fscanf(curlProcess, "%255s", outputBuffer);
     pclose(curlProcess);
     printf("[Email Sending] Recipient: %s Status: %s\n", context->emailAddress, outputBuffer);
