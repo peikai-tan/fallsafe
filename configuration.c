@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include "configuration.h"
 
-static char *DefaultAccessToken = "dAWY0dhv2dx4LM1PE4sg";
+static char *DefaultMQTTAccessToken = "dAWY0dhv2dx4LM1PE4sg";
 
 /* Process command line arguments to configure the program configurations if there are any */
 struct configuration
@@ -12,7 +12,7 @@ parse_command_line(int argc, char **argv)
 {
     struct configuration result;
     result.emailAddress = NULL;
-    result.mqttAccessToken = DefaultAccessToken;
+    result.mqttAccessToken = DefaultMQTTAccessToken;
     result.enableLED = true;
     result.processingIntervalMS = 1000.0;
 
@@ -43,8 +43,11 @@ parse_command_line(int argc, char **argv)
             break;
         }
     }
-    char *tokenType = result.mqttAccessToken == DefaultAccessToken ? "(Using Team 18 Default Token)" : "" printf("[Configuration] Email: %s\n", result.emailAddress);
-    printf("[Configuration] MQTT Token: %s %s\n", result.mqttAccessToken, );
+    char *tokenType = result.mqttAccessToken == DefaultMQTTAccessToken 
+        ? "(Using Team 18 Default Token)" 
+        : "";
+    printf("[Configuration] Email: %s\n", result.emailAddress);
+    printf("[Configuration] MQTT Token: %s %s\n", result.mqttAccessToken, tokenType);
     printf("[Configuration] LED: %d\n", result.enableLED);
     printf("[Configuration] Interval: %lf ms\n", result.processingIntervalMS);
     return result;
