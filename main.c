@@ -88,7 +88,6 @@ static Vector3 gather_data(const FallsafeContext *context)
  */
 static ActivityState process_data(const FallsafeContext *context)
 {
-    ActivityState output;
     // ML processing
     queue_peekRange(context->acceleroDataset, queueTarget, (void **)&context->acceleroDataChunk);
     // Unrolling data
@@ -143,10 +142,10 @@ static void send_thingsboardAccel(FallsafeContext *context, Vector3 data)
 /*
  * Send predicted state to thingsboard
  */
-static void send_thingsboardState(FallsafeContext *context, ActivityState state, double time_ms)
+static void send_thingsboardState(FallsafeContext *context, ActivityState state)
 {
     // Send data to thingsboard
-    mqtt_send_activity(state, (long long)time_ms);
+    mqtt_send_activity(state, (long long)context->unixTime);
 }
 
 /*
@@ -170,7 +169,7 @@ static void check_process_data(FallsafeContext *context)
 
     ActivityState state = process_data(context);
     context->activityState = state;
-    send_thingsboardState(context, state, context->unixTime);
+    send_thingsboardState(context, state);
     printf("Proccessed State: %d ================================================\n", state);
     // Show LED
     if (previousState != state)
@@ -403,7 +402,6 @@ int main(int argc, char **argv)
 #endif // DEBUG
 
     struct configuration config = parse_command_line(argc, argv);
-    Classifier classifier;
 
     FallsafeContext context;
     double previousTime;

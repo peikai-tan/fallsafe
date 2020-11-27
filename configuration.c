@@ -17,7 +17,7 @@ parse_command_line(int argc, char **argv)
     result.processingIntervalMS = 1000.0;
 
     int opt;
-    while ((opt = getopt(argc, argv, ":e:a:l:t:h")) != -1)
+    while ((opt = getopt(argc, argv, ":e:na:l:t:h")) != -1)
     {
         switch (opt)
         {
@@ -26,6 +26,9 @@ parse_command_line(int argc, char **argv)
             break;
         case 'a':
             result.mqttAccessToken = optarg;
+            break;
+        case 'n':
+            result.mqttAccessToken = NULL;
             break;
         case 'l':
             result.enableLED = atoi(optarg) == 0 ? false : true;

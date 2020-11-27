@@ -49,6 +49,7 @@ void *client_refresher(void *client)
 
 void publish_callback(void **unused, struct mqtt_response_publish *published)
 {
+    (void) unused;
     printf("[MQTT] Publish response: %s", (char *)published->application_message);
 }
 
@@ -94,6 +95,7 @@ void mqtt_setup_client(char *access_token)
 
 void mqtt_send_vector3(Vector3 *vector, long long time_ms)
 {
+    (void) time_ms; // Not using as the server time actually around 2 mins ahead of us 
     if (accessToken == NULL)
     {
         return;
@@ -112,6 +114,7 @@ void mqtt_send_vector3(Vector3 *vector, long long time_ms)
 
 void mqtt_send_activity(ActivityState activity_state, long long time_ms)
 {
+    (void)time_ms; // Not using as the server time actually around 2 mins ahead of us
     if (accessToken == NULL)
     {
         return;

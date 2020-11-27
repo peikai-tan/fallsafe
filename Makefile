@@ -2,7 +2,7 @@
 
 # C compiler flags with extra warnings, using GNU C99 as MQTT requires posix sockets which needs GNU C support 
 CFLAGS=-std=gnu99 -Wextra -Wall -Wno-unused-parameter -Wno-unused-variable -Wno-duplicate-decl-specifier 
-CFLAGS_STRICT=-std=c99 -Wextra -Wall -Werror -pedantic
+CFLAGS_STRICT=-std=gnu99 -Wextra -Wall -Werror
 
 # Standard runtime library dependencies 
 LIBS=-lm -lpthread -lrt -lwiringPi
@@ -30,7 +30,7 @@ TARGETS=\
 # Full build with optimisation and precompilation
 # Takes around 4 seconds on Raspbian PI 3B+ OS Buster 
 default: $(PREBUILDS)
-	gcc -O3 $(CFLAGS) $(LIBS) \
+	gcc -O3 $(CFLAGS_STRICT) $(LIBS) \
 	$(ARTIFACTS) \
 	$(TARGETS) \
 	-o ./bin/fallsafe
@@ -51,7 +51,7 @@ test-main: debug-main
 # Raw clean build without all the precompilations
 # Takes around 8.5 seconds for all compiles on Raspbian PI 3B+ OS Buster 
 clean-build: clean
-	gcc -O3 $(CFLAGS)\
+	gcc -O3 $(CFLAGS_STRICT) \
 	-lm -lpthread -lrt -lwiringPi \
 	./genann/genann.c \
 	-I ./lib/MQTT-C/include ./lib/MQTT-C/src/mqtt.c ./lib/MQTT-C/src/mqtt_pal.c \
