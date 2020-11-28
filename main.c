@@ -337,6 +337,7 @@ static void await_userinput(FallsafeContext *context)
     // Waits for user input 
     while (poll(&context->evpoll, 1, 0) > 0)
     {
+        // If successful read from joystick
         if (readJoystick(&context->joystickFB, &joystick))
         {
             interacted = true;
@@ -353,6 +354,7 @@ static void await_userinput(FallsafeContext *context)
                 printf("[INFO] Joystick RELEASE direction: %s=====================================================\n", joystick.direction);
                 switch (joystick.dir)
                 {
+                // Selects option and resets everything
                 case ENTER:
                     context->state = INITIAL;
                     context->activityState = STATIONARY;
@@ -375,14 +377,18 @@ static void await_userinput(FallsafeContext *context)
 
                     break;
 
+                // Does nothing
                 case UP:
+                // Selects next option
                 case RIGHT:
                     currentSelection = (currentSelection + 1) % 4;
                     setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
                     drawActivity(selections[currentSelection], context->sensehatLEDMap, &context->sensehatfbfd);
                     break;
 
+                // Does nothing
                 case DOWN:
+                // Selects previous option
                 case LEFT:
                     currentSelection = currentSelection - 1 < 0 ? 3 : (currentSelection - 1);
                     setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
