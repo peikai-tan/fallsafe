@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "posix_sockets.h"
 #include "mqtt-sender.h"
@@ -16,13 +17,19 @@ static char *clientId = NULL;
 static uint8_t connectFlags = MQTT_CONNECT_CLEAN_SESSION;
 static pthread_t clientDaemon;
 static int sockfd;
+static bool isRunning = true;
 
 void mqtt_exit(int status, int sockfd, pthread_t *client_daemon)
 {
     if (sockfd != -1)
+    {
         close(sockfd);
+    }
     if (client_daemon)
-        pthread_cancel(*client_daemon);
+    {
+        isRunning = false;
+        pthread_join(*client_daemon, NULL);
+    }
     exit(status);
 }
 
@@ -32,14 +39,17 @@ void mqtt_dispose(void)
     {
         return;
     }
+    isRunning = false;
     if (sockfd != -1)
+    {
         close(sockfd);
-    pthread_cancel(clientDaemon);
+    }
+    pthread_join(clientDaemon, NULL);
 }
 
 void *client_refresher(void *client)
 {
-    while (1)
+    while (isRunning)
     {
         mqtt_sync((struct mqtt_client *)client);
         usleep(500000U);
@@ -49,7 +59,7 @@ void *client_refresher(void *client)
 
 void publish_callback(void **unused, struct mqtt_response_publish *published)
 {
-    (void) unused;
+    (void)unused;
     printf("[MQTT] Publish response: %s", (char *)published->application_message);
 }
 
@@ -95,7 +105,7 @@ void mqtt_setup_client(char *access_token)
 
 void mqtt_send_vector3(Vector3 *vector, long long time_ms)
 {
-    (void) time_ms; // Not using as the server time actually around 2 mins ahead of us 
+    (void)time_ms; // Not using as the server time actually around 2 mins ahead of standard time
     if (accessToken == NULL)
     {
         return;
@@ -114,7 +124,7 @@ void mqtt_send_vector3(Vector3 *vector, long long time_ms)
 
 void mqtt_send_activity(ActivityState activity_state, long long time_ms)
 {
-    (void) time_ms; // Not using as the server time actually around 2 mins ahead of us
+    (void)time_ms; // Not using as the server time actually around 2 mins ahead of standard time
     if (accessToken == NULL)
     {
         return;

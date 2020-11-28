@@ -477,7 +477,7 @@ void exit_handler(int signum)
 int main(int argc, char **argv)
 {
 #if defined(DEBUG)
-    puts("DEBUG MODE");
+    puts("[INFO] DEBUG MODE");
 #endif // DEBUG
 
     struct configuration config = parse_command_line(argc, argv);
