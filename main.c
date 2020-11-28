@@ -495,6 +495,7 @@ int main(int argc, char **argv)
     context.emailAddress = config.emailAddress;
     context.mqttAccessToken = config.mqttAccessToken;
     context.processingIntervalMS = config.processingIntervalMS;
+    context.activityState = STATIONARY;
 
     // Set up program termination handler
     signal(SIGINT, exit_handler);

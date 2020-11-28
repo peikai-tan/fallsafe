@@ -43,10 +43,15 @@ debug-main: $(PREBUILDS)
 	$(TARGETS) \
 	-D DEBUG -o ./bin/fallsafe_debug
 
+
 # Shorthand to debug build and run
 test-main: t=1000
 test-main: debug-main
 	./bin/fallsafe_debug -t $(t)
+
+# Shorthand to start valgrind to test the program for memory leaks
+valgrind-main: debug-main
+	valgrind --log-file="valgrind.log" --track-origins=yes --leak-check=full ./bin/fallsafe_debug
 
 # Raw clean build without all the precompilations
 # Takes around 8.5 seconds for all compiles on Raspbian PI 3B+ OS Buster 

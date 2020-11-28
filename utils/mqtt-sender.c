@@ -101,7 +101,7 @@ void mqtt_send_vector3(Vector3 *vector, long long time_ms)
         return;
     }
 
-    char application_message[256];
+    char application_message[256] = {0};
     snprintf(application_message, sizeof(application_message), "{\"x\": %lf, \"y\": %lf, \"z\": %lf}", vector->x, vector->y, vector->z);
     mqtt_publish(&mqttClient, topic, application_message, strlen(application_message), MQTT_PUBLISH_QOS_0);
     //printf("Published: \n%s\n", application_message);
@@ -114,7 +114,7 @@ void mqtt_send_vector3(Vector3 *vector, long long time_ms)
 
 void mqtt_send_activity(ActivityState activity_state, long long time_ms)
 {
-    (void)time_ms; // Not using as the server time actually around 2 mins ahead of us
+    (void) time_ms; // Not using as the server time actually around 2 mins ahead of us
     if (accessToken == NULL)
     {
         return;
