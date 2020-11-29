@@ -125,7 +125,7 @@ For help: `./bin/fallsafe -h`
 -h Prints this help message
 ```
 #### Examples to Start the Program:
-The program must be run with sudo permissions for open().
+The program should be run with sudo permissions for open().
 
 ##### Using our Team's default Thingsboard access token and a fall alert email receiver:
 
