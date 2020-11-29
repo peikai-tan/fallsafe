@@ -151,7 +151,6 @@ static void check_process_data(FallsafeContext *context)
     // Show LED
     if (previousState != state)
     {
-        setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
         previousState = state;
 
         if (state == FALLING)
@@ -191,7 +190,6 @@ static void perform_task(FallsafeContext *context)
 
     // Pass data for processing
     check_process_data(context);
-    drawActivity(context->activityState, context->sensehatLEDMap, &context->sensehatfbfd);
 }
 
 /**
@@ -316,7 +314,6 @@ void fallsafe_await_userinput(FallsafeContext *context)
                     classifier_reinforce(context->classifier, context->unrolledDataChunk, currentSelection + 1);
                     printf("[INFO] Reinforced with %d\n", currentSelection + 1);
                     currentSelection = -1;
-
                     break;
 
                 // Does nothing
@@ -324,8 +321,7 @@ void fallsafe_await_userinput(FallsafeContext *context)
                 // Selects next option
                 case RIGHT:
                     currentSelection = (currentSelection + 1) % 4;
-                    setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
-                    drawActivity(selections[currentSelection], context->sensehatLEDMap, &context->sensehatfbfd);
+                    context->activityState = selections[currentSelection];
                     break;
 
                 // Does nothing
@@ -333,8 +329,7 @@ void fallsafe_await_userinput(FallsafeContext *context)
                 // Selects previous option
                 case LEFT:
                     currentSelection = currentSelection - 1 < 0 ? 3 : (currentSelection - 1);
-                    setMap(0x0000, context->sensehatLEDMap, &context->sensehatfbfd);
-                    drawActivity(selections[currentSelection], context->sensehatLEDMap, &context->sensehatfbfd);
+                    context->activityState = selections[currentSelection];
                     break;
                 }
             }
@@ -354,27 +349,16 @@ void fallsafe_await_userinput(FallsafeContext *context)
  */
 void fallsafe_update_rolling_led(FallsafeContext *context)
 {
-    static const double interval = 1000.0 / 15;
     static int previousPosition = 0;
     static int currentPosition = 0;
-    static double timepassed = 0;
-    timepassed += context->deltaTime;
-    if (timepassed > interval)
-    {
-        shSetPixel(previousPosition, 0, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
-        shSetPixel(currentPosition, 0, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
-        shSetPixel(7, previousPosition, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
-        shSetPixel(7, currentPosition, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
-        shSetPixel(0, 7 - previousPosition, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
-        shSetPixel(0, 7 - currentPosition, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
-        shSetPixel(7 - previousPosition, 7, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
-        shSetPixel(7 - currentPosition, 7, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
-        previousPosition = currentPosition;
-        currentPosition = (currentPosition + 1) % 7;
-        timepassed -= interval;
-        if (timepassed > interval)
-        {
-            timepassed = 0;
-        }
-    }
+    shSetPixel(previousPosition, 0, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+    shSetPixel(currentPosition, 0, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+    shSetPixel(7, previousPosition, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+    shSetPixel(7, currentPosition, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+    shSetPixel(0, 7 - previousPosition, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+    shSetPixel(0, 7 - currentPosition, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+    shSetPixel(7 - previousPosition, 7, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+    shSetPixel(7 - currentPosition, 7, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+    previousPosition = currentPosition;
+    currentPosition = (currentPosition + 1) % 7;
 }
