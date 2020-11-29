@@ -58,7 +58,7 @@ void queue_enqueue(Queue queue, void *item)
 
 /**
  * queue_dequeue(): Dequeue function
- * @queue: Queue structure to enqueue
+ * @queue: Queue structure to dequeue
  * @out: Any item to dequeue
  *
  * Remove the first index object in the queue
@@ -71,7 +71,7 @@ void queue_dequeue(Queue queue, void *out)
 
 /**
  * queue_peek(): Peek function
- * @queue: Queue structure to enqueue
+ * @queue: Queue structure to peek
  *
  * Return the first index object
 */
@@ -82,7 +82,7 @@ void *queue_peek(Queue queue)
 
 /**
  * queue_peekRange(): Peek a range of items in the queue
- * @queue: Queue structure to peek
+ * @queue: Queue structure to peek range
  * @count: How much to peek
  * @out: Pointer to an array of items to return
 */

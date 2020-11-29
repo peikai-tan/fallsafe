@@ -69,9 +69,9 @@ Interface Option → Enable I2C → Yes
 
 `sudo reboot`
 
-#### Install i2c tools and smbus library:
+#### Install i2c tools, dev library and smbus library:
 
-`sudo apt-get install -y python-smbus i2c-tools`
+`sudo apt-get install -y python-smbus i2c-tools libi2c-dev wiringpi`
 
 To Verify: `ls /usr/include/i2c/`
 
@@ -125,18 +125,23 @@ For help: `./bin/fallsafe -h`
 -h Prints this help message
 ```
 #### Examples to Start the Program:
+The program should be run with sudo permissions for i2c, or run for default username `pi` to i2c group: `sudo adduser pi i2c`.
 
 ##### Using our Team's default Thingsboard access token and a fall alert email receiver:
 
-`./bin/fallsafe -e test@example.com`
+`sudo ./bin/fallsafe -e test@example.com`
 
 ##### Using non-default Thingsboard access token and email:
 
-`./bin/fallsafe -e test@example.com -a @cc3$$t0k3n`
+`sudo ./bin/fallsafe -e test@example.com -a @cc3$$t0k3n`
 
 ⚠ Warning: Invalid access token will cause the program to exit with MQTT_ERROR_CONNECTION_REFUSED error.
 
 #### Run without MQTT, Email and LED:
 
-`./bin/fallsafe -n -l 0`
+`sudo ./bin/fallsafe -n -l 0`
+
+### Thingboard Dashboard
+<http://129.126.163.157:8080/dashboardGroups/bbb567b0-f8d2-11ea-a79c-5594e6717ca2/6ac363b0-229a-11eb-a79c-5594e6717ca2>
+
 
