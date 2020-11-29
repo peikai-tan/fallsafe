@@ -5,7 +5,7 @@
 //
 // Used arithmetic operations for Vector3
 /**
- * struct vector3 - Vector3 to store the x,y,z values
+ * typedef struct vector3 - Vector3 to store the x,y,z values
  * @x: x value
  * @y: y value
  * @z: z value
