@@ -3,14 +3,14 @@
 
 #include <stdbool.h>
 
-struct configuration
+typedef struct configuration
 {
     char *mqttAccessToken;
     char *emailAddress;
     bool enableLED;
     double processingIntervalMS;
-};
+} Configuration;
 
-struct configuration parse_command_line(int argc, char **argv);
+Configuration parse_command_line(int argc, char **argv);
 
 #endif // CONFIGURATION_H

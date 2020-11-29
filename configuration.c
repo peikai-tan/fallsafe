@@ -7,10 +7,9 @@
 static char *DefaultMQTTAccessToken = "dAWY0dhv2dx4LM1PE4sg";
 
 /* Process command line arguments to configure the program configurations if there are any */
-struct configuration
-parse_command_line(int argc, char **argv)
+Configuration parse_command_line(int argc, char **argv)
 {
-    struct configuration result;
+    Configuration result;
     /* Email Address set to NULL when user did not set Email Address for the Fall Alert */
     result.emailAddress = NULL;
     /* Using our team's Thingsboard Access Token */
@@ -18,7 +17,7 @@ parse_command_line(int argc, char **argv)
     /* Default LED Usage enabled */
     result.enableLED = true;
     /* Default Data Processing Frequency */
-    result.processingIntervalMS = 1000.0;
+    result.processingIntervalMS = 500.0;
 
     /* Loops through the Command Line Options entered by user and execute it accordingly */
     int opt;
@@ -61,7 +60,8 @@ parse_command_line(int argc, char **argv)
     char *tokenType = result.mqttAccessToken == DefaultMQTTAccessToken
                           ? "(Using Team 18 Default Token)"
                           : "";
-    /* Prints out the Emaill Address, MQTT Access Token, Current Token Type (Default or !Default [Empty String]),
+    /* Prints out the Emaill Address, MQTT Access Token, 
+        Current Token Type (Default or !Default [Empty String]),
         Enabled/Disabled LED and the Data Processing Interval in miliseconds */
     printf("[Configuration] Email: %s\n", result.emailAddress);
     printf("[Configuration] MQTT Token: %s %s\n", result.mqttAccessToken, tokenType);

@@ -2,5 +2,11 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <signal.h>
-#include <wiringPi.h>
+#include <string.h>
+
+#include <pthread.h>
+#include <unistd.h>
 #include <poll.h>
+
+#include <wiringPi.h>
+#include <mqtt.h>
