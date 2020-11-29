@@ -44,7 +44,7 @@ Configuration parse_command_line(int argc, char **argv)
             puts("-e Email recipant for the fall alert, no email sending if not supplied\n"
                  "-a MQTT Thingsboard access token, default to our teams's Thingsboard if not supplied\n"
                  "-n Disables MQTT Thingsboard\n"
-                 "-t Data processing interval in milliseconds, defaults to 1000\n"
+                 "-t Data processing interval in milliseconds, defaults to 500\n"
                  "-l 0 to disable LED to save power, defaults to 1\n"
                  "-h Prints this help message");
             /* Exits the whole program since it is only printing the Help Message */
