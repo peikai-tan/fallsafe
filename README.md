@@ -69,9 +69,9 @@ Interface Option → Enable I2C → Yes
 
 `sudo reboot`
 
-#### Install i2c tools and smbus library:
+#### Install i2c tools, dev library and smbus library:
 
-`sudo apt-get install -y python-smbus i2c-tools`
+`sudo apt-get install -y python-smbus i2c-tools libi2c-dev`
 
 To Verify: `ls /usr/include/i2c/`
 
