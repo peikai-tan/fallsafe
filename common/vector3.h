@@ -1,6 +1,6 @@
 #if !defined(COMMON_VECTOR)
 #define COMMON_VECTOR
-// This file contains the function definition for the
+// This file contains the function declaration for the
 // Vector3 library.
 //
 // Used arithmetic operations for Vector3
