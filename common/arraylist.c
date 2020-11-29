@@ -140,6 +140,13 @@ static ArrayList resize(ArrayList list, size_t size)
     return list;
 }
 
+/**
+ * _arraylist_new() - Create new ArrayList
+ * @capacity - Length of ArrayList
+ * @element_size - Size of each element of ArrayList
+ *
+ * Return - New ArrayList
+ */
 ArrayList _arraylist_new(size_t capacity, size_t element_size)
 {
     ArrayList list = (ArrayList)malloc(sizeof(struct arraylist));
@@ -165,12 +172,24 @@ ArrayList _arraylist_new(size_t capacity, size_t element_size)
     return list;
 }
 
+/**
+ * arraylist_destroy() - Destroy ArrayList
+ * @list - Target ArrayList of operation
+ *
+ * Remove ArrayList through freeing pointer
+ */
 void arraylist_destroy(ArrayList list)
 {
     free(list->_array);
     free(list);
 }
 
+/**
+ * arraylist_elementAt() - Get element at position in ArrayList
+ * @list - Target ArrayList of operation
+ * @index - Index of element in ArrayList
+ *
+ */
 void *arraylist_elementAt(ArrayList list, size_t index)
 {
     if (index >= list->length)
