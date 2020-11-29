@@ -274,8 +274,8 @@ void arraylist_unshift(ArrayList list, void *item)
 /**
  * arraylist_print() - Print elements in the Arraylist
  * @list - Target ArrayList of operation
- * @elementBuffer -
- * @printer - 
+ * @elementBuffer - character buffer for how many characters per element for printer
+ * @printer - function to serialise element to string
  */
 void arraylist_print(ArrayList list, char *elementBuffer, void (*printer)(char *, void *))
 {

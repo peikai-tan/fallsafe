@@ -319,17 +319,15 @@ void fallsafe_await_userinput(FallsafeContext *context)
                     currentSelection = -1;
                     break;
 
-                // Does nothing
-                case UP:
                 // Selects next option
+                case UP:
                 case RIGHT:
                     currentSelection = (currentSelection + 1) % 4;
                     context->activityState = selections[currentSelection];
                     break;
 
-                // Does nothing
-                case DOWN:
                 // Selects previous option
+                case DOWN:
                 case LEFT:
                     currentSelection = currentSelection - 1 < 0 ? 3 : (currentSelection - 1);
                     context->activityState = selections[currentSelection];
