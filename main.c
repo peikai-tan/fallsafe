@@ -29,10 +29,11 @@ static volatile bool continueProgram = true;
 static unsigned int updateIntervalMicroSeconds = 1000;
 
 /* pthread condition and locks for software timer interrupt for LED Render */
-pthread_cond_t pthread_timer_cond = PTHREAD_COND_INITIALIZER;
-pthread_mutex_t pthread_timer_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t pthread_timer_cond = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t pthread_timer_lock = PTHREAD_MUTEX_INITIALIZER;
 
-FallsafeContext context;
+/* Only used for the timer handler */
+static FallsafeContext *globalContextPtr;
 
 /**
  * update() - Main update loop
@@ -100,7 +101,7 @@ static void timer_interupt_handler(int signum)
 {
     (void)signum; // Not used
     // Call the LED render function
-    render(&context);
+    render(globalContextPtr);
     // Signal the thread to check if to continue the program execution
     pthread_cond_signal(&pthread_timer_cond);
 }
@@ -172,6 +173,9 @@ int main(int argc, char **argv)
     double currentTime;
 
     // Initialising the Fallsafe program context
+    FallsafeContext context;
+    // Assigning this to global context pointer so it can be accessed by the timer handler
+    globalContextPtr = &context;
     // The dataset queue for data gathering
     context.acceleroDataset = queue_new(Vector3, queueTarget + 1);
     // The portion to be copied from the acceleroDataset for activity detection
