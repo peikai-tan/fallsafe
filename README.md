@@ -95,6 +95,7 @@ The binary will be output at our project directory
 It's recommended to Calibrate the sensors at: https://www.raspberrypi.org/documentation/hardware/sense-hat/
 
 With a portable USB Power supply, strap the Raspberry to the left wrist as follows:
+![Strap On Example](./misc/strapOnExample.jpg)
 
 #### Software Setup:
 Internet connection required is for Thingsboard and Email sending, but they can be disabled.
