@@ -125,7 +125,7 @@ For help: `./bin/fallsafe -h`
 -h Prints this help message
 ```
 #### Examples to Start the Program:
-The program should be run with sudo permissions for open().
+The program should be run with sudo permissions for i2c, or run for default username `pi` to i2c group: `sudo adduser pi i2c`.
 
 ##### Using our Team's default Thingsboard access token and a fall alert email receiver:
 
