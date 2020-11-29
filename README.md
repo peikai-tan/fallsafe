@@ -141,3 +141,7 @@ The program should be run with sudo permissions for i2c, or run for default user
 
 `sudo ./bin/fallsafe -n -l 0`
 
+### Thingboard Dashboard
+<http://129.126.163.157:8080/dashboardGroups/bbb567b0-f8d2-11ea-a79c-5594e6717ca2/6ac363b0-229a-11eb-a79c-5594e6717ca2>
+
+
