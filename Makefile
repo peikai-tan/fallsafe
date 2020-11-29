@@ -25,6 +25,7 @@ TARGETS=\
 	./common/*.c \
 	./utils/*.c \
 	./configuration.c \
+	./fallsafe.c \
 	./main.c 
 
 # Full build with optimisation and precompilation
@@ -35,7 +36,7 @@ default: $(PREBUILDS)
 	$(TARGETS) \
 	-o ./bin/fallsafe
 
-# Full build with GDB debugging and with "#define DEBUG" directive to enable more print outs 
+# Full build with GDB debugging and with "#define DEBUG" directive to enable more status console print outs 
 # Takes around 2.5 seconds for subsequent compiles on Raspbian PI 3B+ OS Buster 
 debug-main: $(PREBUILDS)
 	gcc -g $(CFLAGS) $(LIBS) \
@@ -45,9 +46,9 @@ debug-main: $(PREBUILDS)
 
 
 # Shorthand to debug build and run
-test-main: t=1000
+test-main: t=500
 test-main: debug-main
-	./bin/fallsafe_debug -t $(t)
+	./bin/fallsafe_debug -t $(t) -n
 
 # Shorthand to start valgrind to test the program for memory leaks
 valgrind-main: debug-main
