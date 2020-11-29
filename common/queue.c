@@ -1,3 +1,5 @@
+// This file contains the function definition for the
+// queue library.
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -6,8 +8,14 @@
 #include "queue.h"
 
 /** 
- * Constructs a new queue data structure.
+ * _queue_new(): Constructs a new queue data structure.
  * @capacity: initial capacity of queue
+ * @elementSize: initial number of elements
+ *
+ * Allocate memory for the queue first then allocate memory
+ * for the list using arraylist constructor.
+ *
+ * Return: The new queue struct with specified default capacity and element size
 */
 Queue _queue_new(size_t capacity, size_t elementSize)
 {
@@ -24,7 +32,10 @@ Queue _queue_new(size_t capacity, size_t elementSize)
 }
 
 /**
- * Queue destructor
+ * queue_destroy(): Destructor for queue
+ * @queue: Queue structure to destroy
+ *
+ * Free the list before freeing the queue structure.
 */
 void queue_destroy(Queue queue)
 {
@@ -32,23 +43,49 @@ void queue_destroy(Queue queue)
     free(queue);
 }
 
+/**
+ * queue_enqueue(): Enqueue function
+ * @queue: Queue structure to enqueue
+ * @item: Any item to enqueue
+ *
+ * Put a new item at the end of the queue
+*/
 void queue_enqueue(Queue queue, void *item)
 {
     arraylist_push(queue->_list, item);
     queue->length = queue->_list->length;
 }
 
+/**
+ * queue_dequeue(): Dequeue function
+ * @queue: Queue structure to enqueue
+ * @out: Any item to dequeue
+ *
+ * Remove the first index object in the queue
+*/
 void queue_dequeue(Queue queue, void *out)
 {
     arraylist_shift(queue->_list, out);
     queue->length = queue->_list->length;
 }
 
+/**
+ * queue_peek(): Peek function
+ * @queue: Queue structure to enqueue
+ *
+ * Return the first index object
+*/
 void *queue_peek(Queue queue)
 {
     return arraylist_elementAt(queue->_list, 0);
 }
 
+/**
+ * queue_peekRange(): Peek a range of items in the queue
+ * @queue: Queue structure to peek
+ * @count: How much to peek
+ * @out: Pointer to an array of items to return
+*/
 void queue_peekRange(Queue queue, size_t count, void **out)
 {
     // Check and set if count is more than the queue length 
