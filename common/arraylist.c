@@ -23,12 +23,18 @@ static bool need_shrink(ArrayList list)
 }
 
 /**
+ * compact() - Decrease size of ArrayList
+ * @list - Target ArrayList of operation
+ * @target_size - Specified size of shrinking the ArrayList
+ *
  * Example array of 16 capacity with 9 element and non zero offset to target size 10
  * Index        : 0 1 2 3 4 5 6 7 8 9 A B C D E F
  * Content      : 4 5 6 7 8 - - - - - - - 0 1 2 3
  * First pass   : 4 5 6 7 8 - 0 1 2 3 - - - - - -
  * realloc      : 4 5 6 7 8 - 0 1 2 3
-*/
+ *
+ * Return - A new ArrayList in the specified target size
+ */
 static ArrayList compact(ArrayList list, size_t target_size)
 {
     size_t distance = list->_capacity - target_size;
@@ -59,12 +65,18 @@ static ArrayList compact(ArrayList list, size_t target_size)
 }
 
 /**
+ * widen() - Expand ArrayList
+ * @list - Target ArrayList of operation
+ * @target_size - Specified size to expand to
+ *
  * Example array of 16 capacity with 9 element and non zero offset to target size 16
  * Index        : 0 1 2 3 4 5 6 7 8 9 A B C D E F
  * Content      : 4 5 6 7 8 - 0 1 2 3
  * realloc      : 4 5 6 7 8 - 0 1 2 3 - - - - - -
  * First pass   : 4 5 6 7 8 - - - - - - - 0 1 2 3
-*/
+ *
+ * Return - A new ArrayList in the specified target size
+ */
 static ArrayList widen(ArrayList list, size_t target_size)
 {
     size_t expansionSize = target_size - list->_capacity;
@@ -88,6 +100,15 @@ static ArrayList widen(ArrayList list, size_t target_size)
     return list;
 }
 
+/**
+ * resize() - Adjust size of ArrayList
+ * @list - Target ArrayList of operation
+ * @size - Specified size to expand to
+ *
+ *
+ *
+ * Return - A new ArrayList in the specified target size
+ */
 static ArrayList resize(ArrayList list, size_t size)
 {
     if (list->_iterator_offset == 0)
@@ -163,8 +184,11 @@ void *arraylist_elementAt(ArrayList list, size_t index)
 }
 
 /**
- * Adds an element to it's end
-*/
+ * arraylist_push() - Adds an element to it's end
+ * @list - Target ArrayList of operation
+ * @item - Data to be added
+ *
+ */
 void arraylist_push(ArrayList list, void *item)
 {
     if (need_expand(list))
@@ -175,7 +199,10 @@ void arraylist_push(ArrayList list, void *item)
     memcpy(voidptr_offset(list->_array, list_position(list, list->length++)), item, list->_element_size);
 }
 /**
- * Removes an element from it's end 
+ * arraylist_pop() - Removes an element from it's end 
+ * @list - Target ArrayList of operation
+ * @out - Data to be removed
+ *
 */
 void arraylist_pop(ArrayList list, void *out)
 {
@@ -190,6 +217,11 @@ void arraylist_pop(ArrayList list, void *out)
     }
 }
 
+/**
+ * arraylist_shift() - Remove index 0 element from the ArrayList
+ * @list - Target ArrayList of operation
+ * @out - Item to be
+ */
 void arraylist_shift(ArrayList list, void *out)
 {
     size_t position = list_position(list, 0);
@@ -204,6 +236,11 @@ void arraylist_shift(ArrayList list, void *out)
     }
 }
 
+/**
+ * arraylist_unshift() - Add element to index 0 from the ArrayList
+ * @list - Target ArrayList of operation
+ * @item - Item to be added
+ */
 void arraylist_unshift(ArrayList list, void *item)
 {
     if (need_expand(list))
@@ -215,6 +252,12 @@ void arraylist_unshift(ArrayList list, void *item)
     ++list->length;
 }
 
+/**
+ * arraylist_print() - Print elements in the Arraylist
+ * @list - Target ArrayList of operation
+ * @elementBuffer -
+ * @printer - 
+ */
 void arraylist_print(ArrayList list, char *elementBuffer, void (*printer)(char *, void *))
 {
     printf("[");
