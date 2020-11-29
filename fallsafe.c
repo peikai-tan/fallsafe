@@ -226,24 +226,27 @@ void fallsafe_check_perform_task(FallsafeContext *context)
  * Function sends an email to email in context via a curl get request to Google
  * API
  */
-static void send_externalalert(FallsafeContext *context)
+void send_externalalert(FallsafeContext *context)
 {
     if (context->emailAddress == NULL)
     {
         printf("[Email Sending] No Email Provided\n");
         return;
     }
-    char endPoint[256];
-    char outputBuffer[256];
+    char endPoint[256] = {0};
+    char outputBuffer[256] = {0};
     // Places email address into post request and store into endpoint
     sprintf(endPoint, "curl -sL https://script.google.com/macros/s/AKfycbzbGoq2XFMekzfR9OmpScNKFZ91G-CENr1Np6yWnljyPKCLjJDh/exec?email=%s", context->emailAddress);
     // Opens a process to execute curl command
-    FILE *curlProcess = popen(endPoint, "r");
+    printf("[Email Sending] Recipient: %s Status: \n", context->emailAddress);
+    FILE *curlProcess = popen(endPoint, "w");
     // Reads http response
-    fscanf(curlProcess, "%255s", outputBuffer);
+    while (fgets(outputBuffer, 255, curlProcess) != NULL)
+        printf("%s", outputBuffer);
+
     // Close process
     pclose(curlProcess);
-    printf("[Email Sending] Recipient: %s Status: %s\n", context->emailAddress, outputBuffer);
+    puts("\nEnd Request");
 }
 
 /**
@@ -351,12 +354,16 @@ void fallsafe_update_rolling_led(FallsafeContext *context)
 {
     static int previousPosition = 0;
     static int currentPosition = 0;
+    // Top row
     shSetPixel(previousPosition, 0, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
     shSetPixel(currentPosition, 0, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+    // Right column
     shSetPixel(7, previousPosition, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
     shSetPixel(7, currentPosition, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+    // Left column
     shSetPixel(0, 7 - previousPosition, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
     shSetPixel(0, 7 - currentPosition, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
+    // Botton row
     shSetPixel(7 - previousPosition, 7, 0, 1, context->sensehatLEDMap, &context->sensehatfbfd);
     shSetPixel(7 - currentPosition, 7, 0x4000, 1, context->sensehatLEDMap, &context->sensehatfbfd);
     previousPosition = currentPosition;

@@ -47,8 +47,32 @@ typedef struct fallsafe_context
     double processingIntervalMS;
 } FallsafeContext;
 
+/**
+ * fallsafe_check_perform_task() - To runs every update to check if it is time to 
+ * gather data and process them
+ * @context: FallsafeContext class that contains program-wide variables
+ *
+ * Determine time interval for data gathering and processing
+*/
 void fallsafe_check_perform_task(FallsafeContext *context);
+
+/**
+ * fallsafe_await_userinput() - Triggers when falling has been detected 
+ * @context: FallsafeContext class that contains program-wide variables
+ *
+ * If falling is detected, program state will changed to waiting 
+ * user input to indicate whether it is an false positive.
+ * If no input is detected after a certain period of time, 
+ * an alert to external output will be triggered
+*/
 void fallsafe_await_userinput(FallsafeContext *context);
+
+/**
+ * fallsafe_update_rolling_led() - Set pixel for LED Array
+ * @context: FallsafeContext class that contains program-wide variables
+ * 
+ * Spawns red-lit leds and animates it around the border of the LED matrix.
+ */
 void fallsafe_update_rolling_led(FallsafeContext *context);
 
 #endif // FALLSAFE_H

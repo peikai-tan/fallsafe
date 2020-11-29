@@ -31,7 +31,7 @@ static char *clientId = NULL;
 static uint8_t connectFlags = MQTT_CONNECT_CLEAN_SESSION;
 static pthread_t clientDaemon;
 static int sockfd;
-static bool isRunning = true;
+static volatile bool isRunning = true;
 
 /**
  * mqtt_exit - To properly close of the MQTT client when error occurs
@@ -44,16 +44,16 @@ static bool isRunning = true;
  */
 void mqtt_exit(int status, int sockfd, pthread_t *client_daemon)
 {
-    if (sockfd != -1)      // Socket is not closed, close it.
-    {
-        close(sockfd);
-    }
-    if (client_daemon)     //If daemon is still running
+    if (client_daemon) //If daemon is still running
     {
         isRunning = false; // Set the state to not running & join threads.
         pthread_join(*client_daemon, NULL);
     }
-    exit(status);          // Exit with provided status
+    if (sockfd != -1) // Socket is not closed, close it.
+    {
+        close(sockfd);
+    }
+    exit(status); // Exit with provided status
 }
 
 /**
@@ -71,11 +71,11 @@ void mqtt_dispose(void)
         return;
     }
     isRunning = false;
+    pthread_join(clientDaemon, NULL);
     if (sockfd != -1)
     {
         close(sockfd);
     }
-    pthread_join(clientDaemon, NULL);
 }
 
 /**
@@ -84,11 +84,12 @@ void mqtt_dispose(void)
  *
  * This function is to send the traffic within the client object every 0.5 seconds
  */
-void *client_refresher(void *client)
+void *client_refresher(void *args)
 {
+    struct mqtt_client *client = (struct mqtt_client *)args;
     while (isRunning)
     {
-        mqtt_sync((struct mqtt_client *)client);
+        mqtt_sync(client);
         usleep(500000U);
     }
     return NULL;
