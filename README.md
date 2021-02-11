@@ -9,6 +9,9 @@
 | Tan Qi Guang        | qg25            |
 
 
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/wDVnjOe0kjU/0.jpg)](https://www.youtube.com/embed/wDVnjOe0kjU "Fall Safe")
+
+
 ### Abstract
 The elderly are prone to having poor balance, muscle weaknesses, slow reaction time and  joint problems due to old age. Additionally, medication for age-related illnesses may cause deterioration in cognitive and motor skills. This puts them at a high risk of incurring serious injuries or a loss of life by a fall.
 This project explores the possibility of lowering the chances of serious injuries and or a loss of life by detecting falls through a wearable.
