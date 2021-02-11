@@ -1,13 +1,12 @@
-# LabProj-G18 - Team Whole Garden
 ## FallSafe
 
-| Team Members        | ID        | GitHub Name     |
-|---------------------|-----------|-----------------|
-| Chen Yu             | 1901843   | Cerlancism      |
-| Ng Cheuk Fung       | 16ADG049Y | chalkfung       |
-| Edwin Tang Qin Kang | 1901858   | TanglingTreats  |
-| Tan Peikai          | 1901853   | catkane-doodles |
-| Tan Qi Guang        | 1901844   | qg25            |
+| Team Members        | GitHub Name     |
+|---------------------|-----------------|
+| Chen Yu             | Cerlancism      |
+| Ng Cheuk Fung       | chalkfung       |
+| Edwin Tang Qin Kang | TanglingTreats  |
+| Tan Peikai          | catkane-doodles |
+| Tan Qi Guang        | qg25            |
 
 
 ### Abstract
@@ -140,8 +139,5 @@ The program should be run with sudo permissions for i2c, or run for default user
 #### Run without MQTT, Email and LED:
 
 `sudo ./bin/fallsafe -n -l 0`
-
-### Thingboard Dashboard
-<http://129.126.163.157:8080/dashboardGroups/bbb567b0-f8d2-11ea-a79c-5594e6717ca2/6ac363b0-229a-11eb-a79c-5594e6717ca2>
 
 
